@@ -88,21 +88,35 @@ export async function saveUser(user: User): Promise<void> {
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', id)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      return null; // Not found
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Not found
+      }
+      // Ignore abort errors
+      if (error.message?.includes('aborted') || error.name === 'AbortError') {
+        console.warn('Request was aborted');
+        return null;
+      }
+      console.error('Error getting user:', error);
+      throw error;
     }
-    console.error('Error getting user:', error);
+
+    return data ? dbProfileToUser(data) : null;
+  } catch (error: any) {
+    // Ignore abort errors
+    if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+      console.warn('Request was aborted');
+      return null;
+    }
     throw error;
   }
-
-  return data ? dbProfileToUser(data) : null;
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {

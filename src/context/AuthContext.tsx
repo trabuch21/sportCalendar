@@ -22,33 +22,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check for existing session on mount
   useEffect(() => {
-    checkSession();
+    let isMounted = true;
+    let subscription: { unsubscribe: () => void } | null = null;
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          await loadUser(session);
-        } else if (event === 'SIGNED_OUT') {
-          setAuthState({ user: null, isAuthenticated: false });
+    const initializeAuth = async () => {
+      try {
+        await checkSession();
+        
+        // Listen for auth changes
+        const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!isMounted) return;
+            
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+              await loadUser(session);
+            } else if (event === 'SIGNED_OUT') {
+              if (isMounted) {
+                setAuthState({ user: null, isAuthenticated: false });
+              }
+            }
+          }
+        );
+        
+        subscription = authSubscription;
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (isMounted) {
+          setLoading(false);
         }
       }
-    );
+    };
+
+    initializeAuth();
 
     return () => {
-      subscription.unsubscribe();
+      isMounted = false;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 
   const checkSession = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        setAuthState({ user: null, isAuthenticated: false });
+        setLoading(false);
+        return;
+      }
+      
       if (session) {
         await loadUser(session);
       } else {
         setAuthState({ user: null, isAuthenticated: false });
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Ignore AbortError - it's usually harmless
+      if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+        console.warn('Request was aborted (this is usually harmless)');
+        return;
+      }
       console.error('Error checking session:', error);
       setAuthState({ user: null, isAuthenticated: false });
     } finally {
@@ -76,9 +112,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setAuthState({ user: newUser, isAuthenticated: true });
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Ignore AbortError - it's usually harmless (component unmounted or request cancelled)
+      if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+        console.warn('Request was aborted (this is usually harmless)');
+        return;
+      }
       console.error('Error loading user:', error);
-      setAuthState({ user: null, isAuthenticated: false });
+      // Don't reset auth state on error - might be temporary network issue
+      // setAuthState({ user: null, isAuthenticated: false });
     }
   };
 
