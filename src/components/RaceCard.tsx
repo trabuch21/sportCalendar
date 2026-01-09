@@ -157,7 +157,46 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
               </>
             )}
 
-            {race.raceType === 'duatlón' && race.firstRunDistance && (
+            {race.raceType === 'duatlón' && race.firstDisciplineData && (
+              <>
+                <div className="space-y-1 pb-2 border-b">
+                  <p className="text-sm font-semibold text-blue-600">
+                    {race.firstDiscipline === 'carrera' && '🏃'} 
+                    {race.firstDiscipline === 'ciclismo' && '🚴'} 
+                    {race.firstDiscipline === 'natación' && '🏊'} 
+                    {' '}
+                    Primera Disciplina ({race.firstDiscipline === 'carrera' ? 'Carrera' : race.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'})
+                  </p>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Distancia:</span>
+                    <span className="font-medium">{formatDistance(race.firstDisciplineData.distance)}</span>
+                  </div>
+                  {race.firstDisciplineData.actualDistance && race.firstDisciplineData.actualDistance !== race.firstDisciplineData.distance && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Distancia Real:</span>
+                      <span className="font-medium">{formatDistance(race.firstDisciplineData.actualDistance)}</span>
+                    </div>
+                  )}
+                  {race.firstDisciplineTime && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Tiempo:</span>
+                      <span className="font-medium">{formatTime(race.firstDisciplineTime)}</span>
+                    </div>
+                  )}
+                </div>
+                {race.transition1Time && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-muted-foreground">
+                      T1 ({race.firstDiscipline === 'carrera' ? 'Carrera' : race.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'} → {race.secondDiscipline === 'ciclismo' ? 'Ciclismo' : race.firstDiscipline === 'ciclismo' ? (race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación') : 'Ciclismo'}):
+                    </span>
+                    <span className="font-medium">{formatTime(race.transition1Time.time)}</span>
+                  </div>
+                )}
+              </>
+            )}
+            
+            {/* Legacy support for old duathlon format */}
+            {race.raceType === 'duatlón' && !race.firstDisciplineData && race.firstRunDistance && (
               <>
                 <div className="space-y-1 pb-2 border-b">
                   <p className="text-sm font-semibold text-blue-600">🏃 Primera Carrera</p>
@@ -187,10 +226,15 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
               </>
             )}
 
-            {race.cyclingDistance && (
+            {/* Ciclismo para triatlón o si es primera o segunda disciplina en duatlón */}
+            {race.cyclingDistance && (race.raceType === 'triatlón' || (race.raceType === 'duatlón' && (race.firstDiscipline === 'ciclismo' || race.secondDiscipline === 'ciclismo'))) && (
               <>
                 <div className="space-y-1 pb-2 border-b">
-                  <p className="text-sm font-semibold text-orange-600">🚴 Ciclismo</p>
+                  <p className="text-sm font-semibold text-orange-600">
+                    🚴 Ciclismo
+                    {race.raceType === 'duatlón' && race.firstDiscipline === 'ciclismo' && ' (Primera Disciplina)'}
+                    {race.raceType === 'duatlón' && race.secondDiscipline === 'ciclismo' && ' (Segunda Disciplina)'}
+                  </p>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Distancia:</span>
                     <span className="font-medium">{formatDistance(race.cyclingDistance.distance)}</span>
@@ -210,16 +254,72 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                 </div>
                 {race.transition2Time && (
                   <div className="flex justify-between text-sm py-1">
-                    <span className="text-muted-foreground">T2 (Ciclismo → Carrera):</span>
+                    <span className="text-muted-foreground">
+                      T2 ({race.raceType === 'triatlón' ? 'Ciclismo → Carrera' : race.firstDiscipline === 'ciclismo' ? 'Ciclismo → ' + (race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación') : 'Ciclismo → ' + (race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación')}):
+                    </span>
                     <span className="font-medium">{formatTime(race.transition2Time.time)}</span>
                   </div>
                 )}
               </>
             )}
+            
+            {/* Segunda Disciplina para duatlón personalizable */}
+            {race.raceType === 'duatlón' && race.secondDisciplineData && race.secondDiscipline !== 'ciclismo' && (
+              <>
+                <div className="space-y-1 pb-2 border-b">
+                  <p className="text-sm font-semibold text-green-600">
+                    {race.secondDiscipline === 'carrera' && '🏃'} 
+                    {race.secondDiscipline === 'natación' && '🏊'} 
+                    {' '}
+                    Segunda Disciplina ({race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación'})
+                  </p>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Distancia:</span>
+                    <span className="font-medium">{formatDistance(race.secondDisciplineData.distance)}</span>
+                  </div>
+                  {race.secondDisciplineData.actualDistance && race.secondDisciplineData.actualDistance !== race.secondDisciplineData.distance && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Distancia Real:</span>
+                      <span className="font-medium">{formatDistance(race.secondDisciplineData.actualDistance)}</span>
+                    </div>
+                  )}
+                  {race.secondDisciplineTime && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Tiempo:</span>
+                      <span className="font-medium">{formatTime(race.secondDisciplineTime)}</span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
-            {race.runningDistance && (
+            {/* Carrera solo para triatlón */}
+            {race.runningDistance && race.raceType === 'triatlón' && (
               <div className="space-y-1 pb-2 border-b">
-                <p className="text-sm font-semibold text-green-600">🏃 {race.raceType === 'triatlón' ? 'Carrera' : 'Segunda Carrera'}</p>
+                <p className="text-sm font-semibold text-green-600">🏃 Carrera</p>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Distancia:</span>
+                  <span className="font-medium">{formatDistance(race.runningDistance.distance)}</span>
+                </div>
+                {race.runningDistance.actualDistance && race.runningDistance.actualDistance !== race.runningDistance.distance && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Distancia Real:</span>
+                    <span className="font-medium">{formatDistance(race.runningDistance.actualDistance)}</span>
+                  </div>
+                )}
+                {race.runningTime && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Tiempo:</span>
+                    <span className="font-medium">{formatTime(race.runningTime)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Legacy support: Segunda Carrera para duatlón antiguo */}
+            {race.runningDistance && race.raceType === 'duatlón' && !race.secondDisciplineData && (
+              <div className="space-y-1 pb-2 border-b">
+                <p className="text-sm font-semibold text-green-600">🏃 Segunda Carrera</p>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Distancia:</span>
                   <span className="font-medium">{formatDistance(race.runningDistance.distance)}</span>

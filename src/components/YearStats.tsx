@@ -2,6 +2,9 @@ import React from 'react';
 import { Race } from '../types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import { Download } from 'lucide-react';
+import { exportRacesToCSV } from '../utils/export';
 
 interface YearStatsProps {
   races: Race[];
@@ -63,8 +66,21 @@ export function YearStats({ races, year }: YearStatsProps) {
 
   const averageTime = calculateAverageTime();
 
+  const handleExport = () => {
+    const racesToExport = yearRaces.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    exportRacesToCSV(racesToExport, `estadisticas_${year}`);
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Estadísticas {year}</h2>
+        <Button onClick={handleExport} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Exportar CSV
+        </Button>
+      </div>
+      
       <Card>
         <CardHeader>
           <CardTitle>Balance {year}</CardTitle>

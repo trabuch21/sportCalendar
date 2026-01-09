@@ -3,6 +3,7 @@ import { Race } from '../types';
 import { getRaces, deleteRace } from '../utils/storage';
 import { useAuth } from '../context/AuthContext';
 import { RaceCard } from '../components/RaceCard';
+import { RaceTable } from '../components/RaceTable';
 import { RaceForm } from '../components/RaceForm';
 import { Calendar } from '../components/Calendar';
 import { YearFilter } from '../components/YearFilter';
@@ -10,7 +11,7 @@ import { YearStats } from '../components/YearStats';
 import { DisciplineFilter, getDisciplineTypes } from '../components/DisciplineFilter';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { LogOut, Plus, Calendar as CalendarIcon, List, BarChart3, CheckCircle2 } from 'lucide-react';
+import { LogOut, Plus, Calendar as CalendarIcon, List, BarChart3, Download, LayoutGrid, Table } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -21,7 +22,10 @@ export function Dashboard() {
   const [showForm, setShowForm] = useState(false);
   const [editingRace, setEditingRace] = useState<Race | undefined>();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'stats' | 'completed'>('calendar');
+  const [viewMode, setViewMode] = useState<'calendar' | 'list' | 'stats'>('calendar');
+  const [listViewType, setListViewType] = useState<'card' | 'table'>('card');
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'distance' | null>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState<'all' | 'running' | 'natación' | 'triatlón' | 'duatlón' | null>('all');
 
@@ -62,12 +66,52 @@ export function Dashboard() {
       }
     }
     
+    // Apply sorting
+    if (sortBy) {
+      filtered = [...filtered].sort((a, b) => {
+        let comparison = 0;
+        
+        switch (sortBy) {
+          case 'name':
+            comparison = a.name.localeCompare(b.name, 'es');
+            break;
+          case 'date':
+            comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+            break;
+          case 'distance':
+            const getDistance = (race: Race): number => {
+              if (race.raceType === 'triatlón' || race.raceType === 'duatlón') {
+                let total = 0;
+                if (race.swimmingDistance) total += race.swimmingDistance.distance;
+                if (race.cyclingDistance) total += race.cyclingDistance.distance;
+                if (race.runningDistance) total += race.runningDistance.distance;
+                if (race.firstRunDistance) total += race.firstRunDistance.distance;
+                if (race.firstDisciplineData) total += race.firstDisciplineData.distance;
+                if (race.secondDisciplineData) total += race.secondDisciplineData.distance;
+                return total;
+              }
+              return race.actualDistance || race.distance;
+            };
+            comparison = getDistance(a) - getDistance(b);
+            break;
+        }
+        
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
+    }
+    
     return filtered;
-  }, [allRaces, selectedYear, selectedDiscipline, viewMode]);
+  }, [allRaces, selectedYear, selectedDiscipline, viewMode, sortBy, sortOrder]);
 
-  const completedRaces = useMemo(() => {
-    return allRaces.filter(r => r.actualTime).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [allRaces]);
+  const handleSort = (field: 'name' | 'date' | 'distance') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
 
   const handleSave = async () => {
     await loadRaces();
@@ -158,15 +202,6 @@ export function Dashboard() {
                   <BarChart3 className="h-4 w-4" />
                   Estadísticas
                 </Button>
-                <Button
-                  variant={viewMode === 'completed' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('completed')}
-                  className="gap-2"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Completadas
-                </Button>
               </div>
               <Button onClick={handleNewRace} className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -184,25 +219,49 @@ export function Dashboard() {
       <main className="container mx-auto px-4 py-8">
         {viewMode === 'list' && (
           <>
-            <DisciplineFilter
-              selectedDiscipline={selectedDiscipline}
-              onDisciplineChange={setSelectedDiscipline}
-            />
-            <YearFilter
-              selectedYear={selectedYear}
-              availableYears={availableYears}
-              onYearChange={setSelectedYear}
-              showAll={true}
-            />
+            <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center justify-between">
+              <div className="flex flex-wrap gap-4">
+                <DisciplineFilter
+                  selectedDiscipline={selectedDiscipline}
+                  onDisciplineChange={setSelectedDiscipline}
+                />
+                <YearFilter
+                  selectedYear={selectedYear}
+                  availableYears={availableYears}
+                  onYearChange={setSelectedYear}
+                  showAll={true}
+                />
+              </div>
+              <div className="inline-flex rounded-lg border bg-muted p-1">
+                <Button
+                  variant={listViewType === 'card' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setListViewType('card')}
+                  className="gap-2"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  Cards
+                </Button>
+                <Button
+                  variant={listViewType === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setListViewType('table')}
+                  className="gap-2"
+                >
+                  <Table className="h-4 w-4" />
+                  Tabla
+                </Button>
+              </div>
+            </div>
           </>
         )}
 
-        {(viewMode === 'stats' || viewMode === 'completed') && (
+        {viewMode === 'stats' && (
           <YearFilter
             selectedYear={selectedYear}
             availableYears={availableYears}
             onYearChange={setSelectedYear}
-            showAll={viewMode === 'completed'}
+            showAll={false}
           />
         )}
 
@@ -247,7 +306,7 @@ export function Dashboard() {
                   Crear tu primera carrera
                 </Button>
               </Card>
-            ) : (
+            ) : listViewType === 'card' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredRaces.map(race => (
                   <RaceCard
@@ -258,6 +317,17 @@ export function Dashboard() {
                   />
                 ))}
               </div>
+            ) : (
+              <Card className="p-0 overflow-hidden">
+                <RaceTable
+                  races={filteredRaces}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  sortBy={sortBy}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+              </Card>
             )}
           </div>
         )}
@@ -270,33 +340,6 @@ export function Dashboard() {
               <Card className="p-12 text-center">
                 <p className="text-muted-foreground">Selecciona un año para ver las estadísticas</p>
               </Card>
-            )}
-          </div>
-        )}
-
-        {viewMode === 'completed' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Todas las Carreras Completadas</h2>
-            {completedRaces.length === 0 ? (
-              <Card className="p-12 text-center">
-                <p className="text-muted-foreground">Aún no has completado ninguna carrera.</p>
-              </Card>
-            ) : (
-              <>
-                <p className="text-muted-foreground mb-6">
-                  Total: {completedRaces.length} carrera{completedRaces.length !== 1 ? 's' : ''}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {completedRaces.map(race => (
-                    <RaceCard
-                      key={race.id}
-                      race={race}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </div>
-              </>
             )}
           </div>
         )}

@@ -61,12 +61,20 @@ VITE_SUPABASE_ANON_KEY=tu_anon_key_aqui
 - Reemplaza `tu_project_url_aqui` y `tu_anon_key_aqui` con los valores reales de Supabase
 - El archivo `.env` NO debe subirse a GitHub (ya está en `.gitignore`)
 
-## Paso 5: Configurar autenticación (opcional)
+## Paso 5: Configurar autenticación (RECOMENDADO)
 
-Por defecto, Supabase requiere confirmación de email. Si quieres desactivarla para desarrollo:
+**IMPORTANTE:** Por defecto, Supabase requiere confirmación de email. Esto puede ser molesto durante desarrollo.
+
+Para desactivar la confirmación de email:
 
 1. Ve a **Authentication** → **Settings**
-2. Desactiva **Enable email confirmations**
+2. Busca la sección **"Email Auth"**
+3. Desactiva **"Enable email confirmations"**
+4. Haz clic en **Save**
+
+**Nota:** Con esto desactivado, los usuarios podrán iniciar sesión inmediatamente después de registrarse, sin necesidad de confirmar el email. Esto es ideal para desarrollo y testing.
+
+Si prefieres mantener la confirmación activa (más seguro para producción), los usuarios recibirán un email y deberán hacer clic en el enlace de confirmación antes de poder iniciar sesión.
 
 ## Paso 6: Probar la aplicación
 

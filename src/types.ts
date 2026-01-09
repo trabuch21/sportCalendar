@@ -11,6 +11,8 @@ export interface TransitionTime {
   time: string; // HH:MM:SS format
 }
 
+export type DuathlonDiscipline = 'carrera' | 'ciclismo' | 'natación';
+
 export interface Race {
   id: string;
   userId: string;
@@ -23,7 +25,14 @@ export interface Race {
   swimmingDistance?: DisciplineDistance;
   cyclingDistance?: DisciplineDistance;
   runningDistance?: DisciplineDistance; // Second run for triathlon, second run for duathlon
-  firstRunDistance?: DisciplineDistance; // First run for duathlon only
+  firstRunDistance?: DisciplineDistance; // First run for duathlon only (legacy, usar firstDisciplineData)
+  // For customizable duathlon
+  firstDiscipline?: DuathlonDiscipline; // First discipline type for duathlon
+  secondDiscipline?: DuathlonDiscipline; // Second discipline type for duathlon
+  firstDisciplineData?: DisciplineDistance; // Data for first discipline
+  secondDisciplineData?: DisciplineDistance; // Data for second discipline
+  firstDisciplineTime?: string; // Time for first discipline
+  secondDisciplineTime?: string; // Time for second discipline
   transition1Time?: TransitionTime; // T1: Swimming to Cycling (triathlon) or Running to Cycling (duathlon)
   transition2Time?: TransitionTime; // T2: Cycling to Running
   // Times
@@ -33,7 +42,7 @@ export interface Race {
   swimmingTime?: string;
   cyclingTime?: string;
   runningTime?: string;
-  firstRunTime?: string; // First run time for duathlon
+  firstRunTime?: string; // First run time for duathlon (legacy)
   priority: RacePriority;
   goal: RaceGoal;
   notes?: string;
