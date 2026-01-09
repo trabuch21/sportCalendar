@@ -21,10 +21,6 @@ export function Login() {
     }
   }, [isAuthenticated, navigate]);
 
-  const fillTestCredentials = () => {
-    setEmail('test@test.com');
-    setPassword('test123');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,21 +61,6 @@ export function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!isRegister && (
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-              <Button
-                type="button"
-                onClick={fillTestCredentials}
-                variant="outline"
-                className="w-full mb-2"
-              >
-                🔑 Usar credenciales de prueba
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                test@test.com / test123
-              </p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (

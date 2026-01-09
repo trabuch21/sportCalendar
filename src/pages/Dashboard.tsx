@@ -17,6 +17,7 @@ import { es } from 'date-fns/locale';
 export function Dashboard() {
   const { user, logout } = useAuth();
   const [allRaces, setAllRaces] = useState<Race[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRace, setEditingRace] = useState<Race | undefined>();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -24,11 +25,22 @@ export function Dashboard() {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedDiscipline, setSelectedDiscipline] = useState<'all' | 'running' | 'natación' | 'triatlón' | 'duatlón' | null>('all');
 
-  useEffect(() => {
+  const loadRaces = async () => {
     if (user) {
-      const userRaces = getRaces(user.id);
-      setAllRaces(userRaces.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+      try {
+        setLoading(true);
+        const userRaces = await getRaces(user.id);
+        setAllRaces(userRaces.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+      } catch (error) {
+        console.error('Error loading races:', error);
+      } finally {
+        setLoading(false);
+      }
     }
+  };
+
+  useEffect(() => {
+    loadRaces();
   }, [user]);
 
   const availableYears = useMemo(() => {
@@ -57,11 +69,8 @@ export function Dashboard() {
     return allRaces.filter(r => r.actualTime).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [allRaces]);
 
-  const handleSave = () => {
-    if (user) {
-      const userRaces = getRaces(user.id);
-      setAllRaces(userRaces.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-    }
+  const handleSave = async () => {
+    await loadRaces();
     setShowForm(false);
     setEditingRace(undefined);
     setSelectedDate(null);
@@ -77,12 +86,14 @@ export function Dashboard() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta carrera?')) {
-      deleteRace(id);
-      if (user) {
-        const userRaces = getRaces(user.id);
-        setAllRaces(userRaces.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+      try {
+        await deleteRace(id);
+        await loadRaces();
+      } catch (error) {
+        console.error('Error deleting race:', error);
+        alert('Error al eliminar la carrera');
       }
     }
   };
@@ -100,6 +111,14 @@ export function Dashboard() {
   };
 
   if (!user) return null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

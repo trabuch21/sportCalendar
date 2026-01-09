@@ -21,6 +21,7 @@ const GOALS: RaceGoal[] = ['completar', 'tiempo', 'disfrutar', 'ninguno'];
 
 export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
   const { user } = useAuth();
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     date: '',
@@ -79,58 +80,67 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
     }
   }, [race]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) return;
 
-    const isMultiDiscipline = formData.raceType === 'triatlón' || formData.raceType === 'duatlón';
-    
-    const raceData: Race = {
-      id: race?.id || generateId(),
-      userId: user.id,
-      name: formData.name,
-      date: new Date(formData.date + 'T00:00:00').toISOString(),
-      raceType: formData.raceType,
-      distance: isMultiDiscipline ? 0 : parseFloat(formData.distance) * 1000,
-      actualDistance: !isMultiDiscipline && formData.actualDistance ? parseFloat(formData.actualDistance) * 1000 : undefined,
-      swimmingDistance: (formData.raceType === 'triatlón' && formData.swimmingDistance) ? {
-        distance: parseFloat(formData.swimmingDistance) * 1000,
-        actualDistance: formData.swimmingActualDistance ? parseFloat(formData.swimmingActualDistance) * 1000 : undefined,
-      } : undefined,
-      cyclingDistance: (isMultiDiscipline && formData.cyclingDistance) ? {
-        distance: parseFloat(formData.cyclingDistance) * 1000,
-        actualDistance: formData.cyclingActualDistance ? parseFloat(formData.cyclingActualDistance) * 1000 : undefined,
-      } : undefined,
-      firstRunDistance: (formData.raceType === 'duatlón' && formData.firstRunDistance) ? {
-        distance: parseFloat(formData.firstRunDistance) * 1000,
-        actualDistance: formData.firstRunActualDistance ? parseFloat(formData.firstRunActualDistance) * 1000 : undefined,
-      } : undefined,
-      runningDistance: (isMultiDiscipline && formData.runningDistance) ? {
-        distance: parseFloat(formData.runningDistance) * 1000,
-        actualDistance: formData.runningActualDistance ? parseFloat(formData.runningActualDistance) * 1000 : undefined,
-      } : undefined,
-      transition1Time: (isMultiDiscipline && formData.transition1Time) ? {
-        time: formData.transition1Time,
-      } : undefined,
-      transition2Time: (isMultiDiscipline && formData.transition2Time) ? {
-        time: formData.transition2Time,
-      } : undefined,
-      swimmingTime: (formData.raceType === 'triatlón' && formData.swimmingTime) ? formData.swimmingTime : undefined,
-      cyclingTime: (isMultiDiscipline && formData.cyclingTime) ? formData.cyclingTime : undefined,
-      firstRunTime: (formData.raceType === 'duatlón' && formData.firstRunTime) ? formData.firstRunTime : undefined,
-      runningTime: (isMultiDiscipline && formData.runningTime) ? formData.runningTime : undefined,
-      targetTime: formData.targetTime || undefined,
-      actualTime: formData.actualTime || undefined,
-      priority: formData.priority,
-      goal: formData.goal,
-      notes: formData.notes || undefined,
-      createdAt: race?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    setSaving(true);
 
-    saveRace(raceData);
-    onSave();
+    try {
+      const isMultiDiscipline = formData.raceType === 'triatlón' || formData.raceType === 'duatlón';
+      
+      const raceData: Race = {
+        id: race?.id || generateId(),
+        userId: user.id,
+        name: formData.name,
+        date: new Date(formData.date + 'T00:00:00').toISOString(),
+        raceType: formData.raceType,
+        distance: isMultiDiscipline ? 0 : parseFloat(formData.distance) * 1000,
+        actualDistance: !isMultiDiscipline && formData.actualDistance ? parseFloat(formData.actualDistance) * 1000 : undefined,
+        swimmingDistance: (formData.raceType === 'triatlón' && formData.swimmingDistance) ? {
+          distance: parseFloat(formData.swimmingDistance) * 1000,
+          actualDistance: formData.swimmingActualDistance ? parseFloat(formData.swimmingActualDistance) * 1000 : undefined,
+        } : undefined,
+        cyclingDistance: (isMultiDiscipline && formData.cyclingDistance) ? {
+          distance: parseFloat(formData.cyclingDistance) * 1000,
+          actualDistance: formData.cyclingActualDistance ? parseFloat(formData.cyclingActualDistance) * 1000 : undefined,
+        } : undefined,
+        firstRunDistance: (formData.raceType === 'duatlón' && formData.firstRunDistance) ? {
+          distance: parseFloat(formData.firstRunDistance) * 1000,
+          actualDistance: formData.firstRunActualDistance ? parseFloat(formData.firstRunActualDistance) * 1000 : undefined,
+        } : undefined,
+        runningDistance: (isMultiDiscipline && formData.runningDistance) ? {
+          distance: parseFloat(formData.runningDistance) * 1000,
+          actualDistance: formData.runningActualDistance ? parseFloat(formData.runningActualDistance) * 1000 : undefined,
+        } : undefined,
+        transition1Time: (isMultiDiscipline && formData.transition1Time) ? {
+          time: formData.transition1Time,
+        } : undefined,
+        transition2Time: (isMultiDiscipline && formData.transition2Time) ? {
+          time: formData.transition2Time,
+        } : undefined,
+        swimmingTime: (formData.raceType === 'triatlón' && formData.swimmingTime) ? formData.swimmingTime : undefined,
+        cyclingTime: (isMultiDiscipline && formData.cyclingTime) ? formData.cyclingTime : undefined,
+        firstRunTime: (formData.raceType === 'duatlón' && formData.firstRunTime) ? formData.firstRunTime : undefined,
+        runningTime: (isMultiDiscipline && formData.runningTime) ? formData.runningTime : undefined,
+        targetTime: formData.targetTime || undefined,
+        actualTime: formData.actualTime || undefined,
+        priority: formData.priority,
+        goal: formData.goal,
+        notes: formData.notes || undefined,
+        createdAt: race?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await saveRace(raceData);
+      onSave();
+    } catch (error) {
+      console.error('Error saving race:', error);
+      alert('Error al guardar la carrera. Por favor, intenta de nuevo.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -499,11 +509,11 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
               Cancelar
             </Button>
-            <Button type="submit">
-              {race ? 'Actualizar' : 'Crear'} Carrera
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Guardando...' : race ? 'Actualizar' : 'Crear'} Carrera
             </Button>
           </div>
         </form>
