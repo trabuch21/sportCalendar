@@ -1,0 +1,36 @@
+.references {
+  max-width: 600px;
+  margin: 24px auto;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.references h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.references-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.reference-item {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.reference-key {
+  font-weight: 600;
+  color: #2c3e50;
+  min-width: 40px;
+}
+
+.reference-value {
+  color: #7f8c8d;
+}
+

@@ -1,0 +1,128 @@
+.workout-display {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.workout-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.workout-name {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.workout-date {
+  margin: 0;
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.workout-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.step.nested {
+  margin-left: 24px;
+}
+
+.step-bar {
+  width: 4px;
+  min-height: 60px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.step-type {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.lap-indicator {
+  font-size: 12px;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.step-detail {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.detail-label {
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #2c3e50;
+}
+
+.repetition-block {
+  margin: 8px 0;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #3498db;
+}
+
+.repetition-block.nested-block {
+  margin-left: 24px;
+  background: #f0f0f0;
+  border-left-color: #2980b9;
+}
+
+.block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.repetition-icon {
+  font-size: 18px;
+}
+
+.repetition-count {
+  font-size: 14px;
+}
+
+.block-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
