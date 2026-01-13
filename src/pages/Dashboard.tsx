@@ -273,12 +273,22 @@ export function Dashboard() {
                 <h3 className="text-xl font-semibold mb-4">
                   Carreras del {format(selectedDate, "d 'de' MMMM", { locale: es })}
                 </h3>
-                {filteredRaces.filter(r => format(new Date(r.date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')).length === 0 ? (
+                {filteredRaces.filter(r => {
+                  const dateStr = r.date.split('T')[0];
+                  const [year, month, day] = dateStr.split('-').map(Number);
+                  const raceDate = new Date(year, month - 1, day);
+                  return format(raceDate, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+                }).length === 0 ? (
                   <p className="text-muted-foreground">No hay carreras programadas para esta fecha</p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                     {filteredRaces
-                      .filter(r => format(new Date(r.date), 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd'))
+                      .filter(r => {
+                        const dateStr = r.date.split('T')[0];
+                        const [year, month, day] = dateStr.split('-').map(Number);
+                        const raceDate = new Date(year, month - 1, day);
+                        return format(raceDate, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+                      })
                       .map(race => (
                         <RaceCard
                           key={race.id}

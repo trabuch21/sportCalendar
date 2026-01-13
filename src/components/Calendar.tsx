@@ -22,7 +22,13 @@ export function Calendar({ races, onDateClick }: CalendarProps) {
   const daysToPrepend = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
   const getRacesForDate = (date: Date) => {
-    return races.filter(race => isSameDay(new Date(race.date), date));
+    return races.filter(race => {
+      // Parse date correctly - PostgreSQL DATE comes as "YYYY-MM-DD"
+      const dateStr = race.date.split('T')[0]; // Get "YYYY-MM-DD" part
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const raceDate = new Date(year, month - 1, day); // month is 0-indexed
+      return isSameDay(raceDate, date);
+    });
   };
 
   const goToPreviousMonth = () => {

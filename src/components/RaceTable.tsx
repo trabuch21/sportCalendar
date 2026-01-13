@@ -120,7 +120,13 @@ export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }
               </td>
               <td className="p-4">
                 <div className="text-sm">
-                  {format(new Date(race.date), "d 'de' MMMM, yyyy", { locale: es })}
+                  {(() => {
+                    // Parse date correctly - PostgreSQL DATE comes as "YYYY-MM-DD"
+                    const dateStr = race.date.split('T')[0];
+                    const [year, month, day] = dateStr.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    return format(date, "d 'de' MMMM, yyyy", { locale: es });
+                  })()}
                 </div>
               </td>
               <td className="p-4">

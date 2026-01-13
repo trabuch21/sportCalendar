@@ -6,14 +6,22 @@ export interface InputProps
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
+    // Force 24-hour format for time inputs
+    const timeProps = type === 'time' ? {
+      'data-format': '24',
+      'data-time-format': '24h',
+    } : {};
+    
     return (
       <input
         type={type}
         className={cn(
           "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          type === 'time' && "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-datetime-edit-ampm-field]:hidden",
           className
         )}
         ref={ref}
+        {...timeProps}
         {...props}
       />
     )

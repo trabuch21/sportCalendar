@@ -121,7 +121,14 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
         </div>
         <h3 className="text-xl font-bold mt-2">{race.name}</h3>
         <p className="text-sm text-muted-foreground">
-          {format(new Date(race.date), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}
+          {(() => {
+            // Parse date correctly - PostgreSQL DATE comes as "YYYY-MM-DD"
+            // Extract just the date part to avoid timezone issues
+            const dateStr = race.date.split('T')[0]; // Get "YYYY-MM-DD" part
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const date = new Date(year, month - 1, day); // month is 0-indexed
+            return format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+          })()}
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
