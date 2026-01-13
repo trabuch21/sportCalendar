@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS races (
   cycling_distance JSONB,
   running_distance JSONB,
   first_run_distance JSONB,
+  -- Duathlon customizable fields
+  first_discipline TEXT CHECK (first_discipline IN ('carrera', 'ciclismo', 'natación')),
+  second_discipline TEXT CHECK (second_discipline IN ('carrera', 'ciclismo', 'natación')),
+  first_discipline_data JSONB,
+  second_discipline_data JSONB,
+  first_discipline_time TEXT,
+  second_discipline_time TEXT,
   transition1_time JSONB,
   transition2_time JSONB,
   -- Times

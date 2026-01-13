@@ -114,8 +114,8 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
         name: formData.name,
         date: new Date(formData.date + 'T00:00:00').toISOString(),
         raceType: formData.raceType,
-        distance: isMultiDiscipline ? 0 : parseFloat(formData.distance) * 1000,
-        actualDistance: !isMultiDiscipline && formData.actualDistance ? parseFloat(formData.actualDistance) * 1000 : undefined,
+        distance: isMultiDiscipline ? 0 : (formData.distance ? parseFloat(formData.distance.replace(',', '.')) * 1000 : 0),
+        actualDistance: !isMultiDiscipline && formData.actualDistance ? parseFloat(formData.actualDistance.replace(',', '.').replace(/[^0-9.]/g, '')) * 1000 : undefined,
         swimmingDistance: (formData.raceType === 'triatlón' && formData.swimmingDistance) ? {
           distance: parseFloat(formData.swimmingDistance) * 1000,
           actualDistance: formData.swimmingActualDistance ? parseFloat(formData.swimmingActualDistance) * 1000 : undefined,

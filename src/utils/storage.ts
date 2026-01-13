@@ -15,6 +15,13 @@ function dbRaceToRace(dbRace: any): Race {
     cyclingDistance: dbRace.cycling_distance,
     runningDistance: dbRace.running_distance,
     firstRunDistance: dbRace.first_run_distance,
+    // Duathlon customizable fields
+    firstDiscipline: dbRace.first_discipline,
+    secondDiscipline: dbRace.second_discipline,
+    firstDisciplineData: dbRace.first_discipline_data,
+    secondDisciplineData: dbRace.second_discipline_data,
+    firstDisciplineTime: dbRace.first_discipline_time,
+    secondDisciplineTime: dbRace.second_discipline_time,
     transition1Time: dbRace.transition1_time,
     transition2Time: dbRace.transition2_time,
     targetTime: dbRace.target_time,
@@ -45,6 +52,13 @@ function raceToDbRace(race: Race): any {
     cycling_distance: race.cyclingDistance,
     running_distance: race.runningDistance,
     first_run_distance: race.firstRunDistance,
+    // Duathlon customizable fields
+    first_discipline: race.firstDiscipline,
+    second_discipline: race.secondDiscipline,
+    first_discipline_data: race.firstDisciplineData,
+    second_discipline_data: race.secondDisciplineData,
+    first_discipline_time: race.firstDisciplineTime,
+    second_discipline_time: race.secondDisciplineTime,
     transition1_time: race.transition1Time,
     transition2_time: race.transition2Time,
     target_time: race.targetTime,
@@ -150,16 +164,68 @@ export async function getCurrentUser(): Promise<User | null> {
 
 // Race storage functions
 export async function saveRace(race: Race): Promise<void> {
-  const dbRace = raceToDbRace(race);
-  
-  const { error } = await supabase
-    .from('races')
-    .upsert(dbRace, {
-      onConflict: 'id'
-    });
+  try {
+    const dbRace = raceToDbRace(race);
+    
+    // Validate required fields
+    if (!dbRace.user_id || !dbRace.name || !dbRace.date || !dbRace.race_type) {
+      throw new Error('Missing required fields');
+    }
+    
+    // Remove undefined/null fields to avoid issues with Supabase
+    const cleanDbRace = Object.fromEntries(
+      Object.entries(dbRace).filter(([_, value]) => value !== undefined && value !== null)
+    );
+    
+    console.log('Saving race with data:', cleanDbRace);
+    
+    const { error, data } = await supabase
+      .from('races')
+      .upsert(cleanDbRace, {
+        onConflict: 'id'
+      })
+      .select();
 
-  if (error) {
-    console.error('Error saving race:', error);
+    if (error) {
+      // Check if it's a column error (missing columns in DB)
+      if (error.message?.includes('column') || error.code === '42703') {
+        console.error('Database schema error - missing columns:', error);
+        throw new Error(`Error de esquema de base de datos: ${error.message}. Ejecuta la migración supabase-migration-duathlon.sql`);
+      }
+      
+      // Ignore abort errors
+      if (error.message?.includes('aborted') || error.name === 'AbortError') {
+        console.warn('Request was aborted, retrying...');
+        // Retry once after a short delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const retryResult = await supabase
+          .from('races')
+          .upsert(cleanDbRace, {
+            onConflict: 'id'
+          })
+          .select();
+        
+        if (retryResult.error) {
+          console.error('Error saving race (retry failed):', retryResult.error);
+          throw retryResult.error;
+        }
+        console.log('Race saved successfully after retry');
+        return;
+      }
+      
+      console.error('Error saving race:', error);
+      console.error('Race data:', cleanDbRace);
+      throw error;
+    }
+    
+    console.log('Race saved successfully:', data);
+  } catch (error: any) {
+    // Ignore abort errors that might occur during component unmount
+    if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+      console.warn('Request was aborted (component may have unmounted)');
+      // Don't throw - this is usually harmless
+      return;
+    }
     throw error;
   }
 }
