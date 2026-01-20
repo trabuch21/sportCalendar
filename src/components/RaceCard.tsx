@@ -393,12 +393,19 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                     <span>{t('common.distance')} {t('common.total')}:</span>
                     <span>{formatDistance(race.distance)}</span>
                   </div>
-                  {race.elevation && (
-                    <div className="flex justify-between text-sm font-semibold">
-                      <span>⛰️ {t('race.totalElevation')}:</span>
-                      <span>{race.elevation.toLocaleString()} m</span>
-                    </div>
-                  )}
+                  {(() => {
+                    // Calculate total elevation for multi-day races
+                    const totalElevation = race.raceType === 'trail' && race.dayDistances
+                      ? race.dayDistances.reduce((sum, dd) => sum + (dd.elevation || 0), 0)
+                      : race.elevation || 0;
+                    
+                    return totalElevation > 0 ? (
+                      <div className="flex justify-between text-sm font-semibold">
+                        <span>⛰️ {t('race.totalElevation')}:</span>
+                        <span>{totalElevation.toLocaleString()} m</span>
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               </>
             ) : (
