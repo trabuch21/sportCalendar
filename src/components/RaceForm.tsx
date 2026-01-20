@@ -23,7 +23,7 @@ const GOALS: RaceGoal[] = ['completar', 'tiempo', 'disfrutar', 'ninguno'];
 
 export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
