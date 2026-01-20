@@ -8,7 +8,7 @@ interface DisciplineFilterProps {
 }
 
 const DISCIPLINE_GROUPS = {
-  running: ['calle', 'trail', 'montaña', 'postas'] as RaceType[],
+  running: ['calle', 'trail', 'postas'] as RaceType[],
   natación: ['natación'] as RaceType[],
   triatlón: ['triatlón'] as RaceType[],
   duatlón: ['duatlón'] as RaceType[],

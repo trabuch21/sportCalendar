@@ -40,7 +40,6 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
     const colors: Record<string, string> = {
       calle: 'bg-blue-500',
       trail: 'bg-green-500',
-      montaña: 'bg-purple-500',
       postas: 'bg-orange-500',
       natación: 'bg-cyan-500',
       triatlón: 'bg-amber-500',
@@ -75,7 +74,6 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
     const colors: Record<string, string> = {
       calle: 'border-l-blue-500',
       trail: 'border-l-green-500',
-      montaña: 'border-l-purple-500',
       postas: 'border-l-orange-500',
       natación: 'border-l-cyan-500',
       triatlón: 'border-l-amber-500',

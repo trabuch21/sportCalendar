@@ -16,7 +16,7 @@ interface RaceFormProps {
   onCancel: () => void;
 }
 
-const RACE_TYPES: RaceType[] = ['calle', 'trail', 'montaña', 'postas', 'natación', 'triatlón', 'duatlón', 'otro'];
+const RACE_TYPES: RaceType[] = ['calle', 'trail', 'postas', 'natación', 'triatlón', 'duatlón', 'otro'];
 const PRIORITIES: RacePriority[] = ['máxima', 'alta', 'media', 'baja', 'ninguna'];
 const GOALS: RaceGoal[] = ['completar', 'tiempo', 'disfrutar', 'ninguno'];
 

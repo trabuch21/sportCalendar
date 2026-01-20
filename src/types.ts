@@ -1,4 +1,4 @@
-export type RaceType = 'calle' | 'trail' | 'montaña' | 'postas' | 'natación' | 'triatlón' | 'duatlón' | 'otro';
+export type RaceType = 'calle' | 'trail' | 'postas' | 'natación' | 'triatlón' | 'duatlón' | 'otro';
 export type RacePriority = 'máxima' | 'alta' | 'media' | 'baja' | 'ninguna';
 export type RaceGoal = 'completar' | 'tiempo' | 'disfrutar' | 'ninguno';
 
