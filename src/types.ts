@@ -17,6 +17,7 @@ export interface DayDistance {
   day: number; // Day number (1, 2, 3, etc.)
   distance: number; // in meters
   actualDistance?: number; // in meters
+  elevation?: number; // in meters (for trail races)
 }
 
 export interface Race {

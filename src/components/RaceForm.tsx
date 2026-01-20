@@ -30,7 +30,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
     distance: '',
     actualDistance: '',
     isMultiDay: false,
-    dayDistances: [] as Array<{ day: number; distance: string; actualDistance: string }>,
+    dayDistances: [] as Array<{ day: number; distance: string; actualDistance: string; elevation: string }>,
     elevation: '',
     swimmingDistance: '',
     swimmingActualDistance: '',
@@ -75,6 +75,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
           day: dd.day,
           distance: (dd.distance / 1000).toString(),
           actualDistance: dd.actualDistance ? (dd.actualDistance / 1000).toString() : '',
+          elevation: dd.elevation ? dd.elevation.toString() : '',
         })) : [],
         elevation: race.elevation ? race.elevation.toString() : '',
         swimmingDistance: race.swimmingDistance ? (race.swimmingDistance.distance / 1000).toString() : '',
@@ -128,22 +129,35 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
     try {
       const isMultiDiscipline = formData.raceType === 'triatlón' || formData.raceType === 'duatlón';
       
-      // Calculate total distance for multi-day races
+      // Calculate total distance and elevation for multi-day races
       let totalDistance = 0;
+      let totalElevation = 0;
       let dayDistancesArray: DayDistance[] | undefined = undefined;
       
       if (formData.isMultiDay && formData.dayDistances.length > 0) {
         dayDistancesArray = formData.dayDistances
           .filter(dd => dd.distance && parseFloat(dd.distance.replace(',', '.')) > 0)
-          .map((dd, index) => ({
-            day: dd.day || index + 1,
-            distance: parseFloat(dd.distance.replace(',', '.')) * 1000,
-            actualDistance: dd.actualDistance ? parseFloat(dd.actualDistance.replace(',', '.')) * 1000 : undefined,
-          }));
+          .map((dd, index) => {
+            const elevation = (formData.raceType === 'trail' && dd.elevation) ? parseInt(dd.elevation) : undefined;
+            if (elevation) {
+              totalElevation += elevation;
+            }
+            return {
+              day: dd.day || index + 1,
+              distance: parseFloat(dd.distance.replace(',', '.')) * 1000,
+              actualDistance: dd.actualDistance ? parseFloat(dd.actualDistance.replace(',', '.')) * 1000 : undefined,
+              elevation: elevation,
+            };
+          });
         totalDistance = dayDistancesArray.reduce((sum, dd) => sum + dd.distance, 0);
       } else if (!isMultiDiscipline && !formData.isMultiDay) {
         totalDistance = formData.distance ? parseFloat(formData.distance.replace(',', '.')) * 1000 : 0;
       }
+      
+      // Calculate elevation: for multi-day trail races use total, for single-day use form field
+      const finalElevation = formData.isMultiDay && formData.raceType === 'trail'
+        ? (totalElevation > 0 ? totalElevation : undefined)
+        : (formData.raceType === 'trail' && formData.elevation ? parseInt(formData.elevation) : undefined);
       
       const raceData: Race = {
         id: race?.id || generateId(),
@@ -157,7 +171,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
           : (!isMultiDiscipline && formData.actualDistance ? parseFloat(formData.actualDistance.replace(',', '.').replace(/[^0-9.]/g, '')) * 1000 : undefined),
         isMultiDay: formData.isMultiDay || undefined,
         dayDistances: dayDistancesArray,
-        elevation: (formData.raceType === 'trail' && formData.elevation) ? parseInt(formData.elevation) : undefined,
+        elevation: finalElevation,
         swimmingDistance: (formData.raceType === 'triatlón' && formData.swimmingDistance) ? {
           distance: parseFloat(formData.swimmingDistance) * 1000,
           actualDistance: formData.swimmingActualDistance ? parseFloat(formData.swimmingActualDistance) * 1000 : undefined,
@@ -286,7 +300,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       ...formData,
                       isMultiDay,
                       dayDistances: isMultiDay && formData.dayDistances.length === 0 
-                        ? [{ day: 1, distance: '', actualDistance: '' }]
+                        ? [{ day: 1, distance: '', actualDistance: '', elevation: '' }]
                         : formData.dayDistances,
                     });
                   }}
@@ -309,7 +323,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                         const newDay = formData.dayDistances.length + 1;
                         setFormData({
                           ...formData,
-                          dayDistances: [...formData.dayDistances, { day: newDay, distance: '', actualDistance: '' }],
+                          dayDistances: [...formData.dayDistances, { day: newDay, distance: '', actualDistance: '', elevation: '' }],
                         });
                       }}
                       className="h-8"
@@ -319,30 +333,47 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                     </Button>
                   </div>
                   {formData.dayDistances.map((dayDist, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                      <div className="space-y-2">
-                        <Label>Día {dayDist.day}</Label>
-                        <div className="text-sm text-muted-foreground">Día {dayDist.day}</div>
+                    <div key={index} className="space-y-3 border-b pb-3 last:border-b-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-base font-semibold">Día {dayDist.day}</Label>
+                        {formData.dayDistances.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const newDayDistances = formData.dayDistances.filter((_, i) => i !== index);
+                              // Renumber days
+                              newDayDistances.forEach((dd, i) => {
+                                dd.day = i + 1;
+                              });
+                              setFormData({ ...formData, dayDistances: newDayDistances });
+                            }}
+                            className="h-8 w-8 text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`dayDistance-${index}`}>Distancia (km) *</Label>
-                        <Input
-                          id={`dayDistance-${index}`}
-                          type="number"
-                          step="0.1"
-                          value={dayDist.distance}
-                          onChange={(e) => {
-                            const newDayDistances = [...formData.dayDistances];
-                            newDayDistances[index].distance = e.target.value;
-                            setFormData({ ...formData, dayDistances: newDayDistances });
-                          }}
-                          placeholder="10"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`dayActualDistance-${index}`}>Distancia Real (km)</Label>
-                        <div className="flex gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor={`dayDistance-${index}`}>Distancia (km) *</Label>
+                          <Input
+                            id={`dayDistance-${index}`}
+                            type="number"
+                            step="0.1"
+                            value={dayDist.distance}
+                            onChange={(e) => {
+                              const newDayDistances = [...formData.dayDistances];
+                              newDayDistances[index].distance = e.target.value;
+                              setFormData({ ...formData, dayDistances: newDayDistances });
+                            }}
+                            placeholder="10"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`dayActualDistance-${index}`}>Distancia Real (km)</Label>
                           <Input
                             id={`dayActualDistance-${index}`}
                             type="number"
@@ -355,26 +386,29 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                             }}
                             placeholder="10.2"
                           />
-                          {formData.dayDistances.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                const newDayDistances = formData.dayDistances.filter((_, i) => i !== index);
-                                // Renumber days
-                                newDayDistances.forEach((dd, i) => {
-                                  dd.day = i + 1;
-                                });
+                        </div>
+                        {formData.raceType === 'trail' && (
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor={`dayElevation-${index}`}>⛰️ Altimetría Día {dayDist.day} (metros)</Label>
+                            <Input
+                              id={`dayElevation-${index}`}
+                              type="number"
+                              value={dayDist.elevation}
+                              onChange={(e) => {
+                                const newDayDistances = [...formData.dayDistances];
+                                newDayDistances[index].elevation = e.target.value;
                                 setFormData({ ...formData, dayDistances: newDayDistances });
                               }}
-                              className="h-10 w-10 text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                              placeholder="Ej: 500"
+                            />
+                          </div>
+                        )}
                       </div>
+                      {formData.raceType === 'trail' && formData.dayDistances.some(dd => dd.elevation) && (
+                        <div className="text-sm text-muted-foreground pt-1">
+                          Altimetría Total: {formData.dayDistances.reduce((sum, dd) => sum + (parseInt(dd.elevation || '0') || 0), 0).toLocaleString()} m
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -382,8 +416,8 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
             </div>
           )}
 
-          {/* Elevation for trail races */}
-          {formData.raceType === 'trail' && (
+          {/* Elevation for trail races (only show for single-day races) */}
+          {formData.raceType === 'trail' && !formData.isMultiDay && (
             <div className="space-y-2 border-t pt-4">
               <Label htmlFor="elevation">Altimetría Total (metros)</Label>
               <Input
