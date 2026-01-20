@@ -182,9 +182,13 @@ export async function saveRace(race: Race): Promise<void> {
       throw new Error('Missing required fields');
     }
     
-    // Remove undefined/null fields to avoid issues with Supabase
+    // Remove undefined/null/NaN fields to avoid issues with Supabase
     const cleanDbRace = Object.fromEntries(
-      Object.entries(dbRace).filter(([_, value]) => value !== undefined && value !== null)
+      Object.entries(dbRace).filter(([_, value]) => {
+        if (value === undefined || value === null) return false;
+        if (typeof value === 'number' && isNaN(value)) return false;
+        return true;
+      })
     );
     
     console.log('Saving race with data:', cleanDbRace);

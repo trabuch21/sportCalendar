@@ -157,9 +157,20 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
       }
       
       // Calculate elevation: for multi-day trail races use total, for single-day use form field
-      const finalElevation = formData.isMultiDay && formData.raceType === 'trail'
-        ? (totalElevation > 0 ? totalElevation : undefined)
-        : (formData.raceType === 'trail' && formData.elevation ? parseInt(formData.elevation) : undefined);
+      let finalElevation: number | undefined = undefined;
+      if (formData.raceType === 'trail') {
+        if (formData.isMultiDay) {
+          finalElevation = totalElevation > 0 ? totalElevation : undefined;
+        } else {
+          // For single-day trail races, parse elevation from form field
+          if (formData.elevation && formData.elevation.trim() !== '') {
+            const parsedElevation = parseInt(formData.elevation.trim());
+            if (!isNaN(parsedElevation) && parsedElevation > 0) {
+              finalElevation = parsedElevation;
+            }
+          }
+        }
+      }
       
       const raceData: Race = {
         id: race?.id || generateId(),
