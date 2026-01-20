@@ -401,7 +401,7 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                     
                     return totalElevation > 0 ? (
                       <div className="flex justify-between text-sm font-semibold">
-                        <span>⛰️ {t('race.totalElevation')}:</span>
+                        <span>⛰️ {t('common.totalElevation')}:</span>
                         <span>{totalElevation.toLocaleString()} m</span>
                       </div>
                     ) : null;

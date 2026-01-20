@@ -418,7 +418,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       </div>
                       {formData.raceType === 'trail' && formData.dayDistances.some(dd => dd.elevation) && (
                         <div className="text-sm text-muted-foreground pt-1">
-                          {t('race.totalElevation')}: {formData.dayDistances.reduce((sum, dd) => sum + (parseInt(dd.elevation || '0') || 0), 0).toLocaleString()} m
+                          {t('common.totalElevation')}: {formData.dayDistances.reduce((sum, dd) => sum + (parseInt(dd.elevation || '0') || 0), 0).toLocaleString()} m
                         </div>
                       )}
                     </div>
@@ -431,7 +431,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
           {/* Elevation for trail races (only show for single-day races) */}
           {formData.raceType === 'trail' && !formData.isMultiDay && (
             <div className="space-y-2 border-t pt-4">
-              <Label htmlFor="elevation">{t('race.totalElevation')} ({t('common.elevation').toLowerCase()})</Label>
+              <Label htmlFor="elevation">{t('common.totalElevation')} ({t('common.elevation').toLowerCase()})</Label>
               <Input
                 id="elevation"
                 type="number"
