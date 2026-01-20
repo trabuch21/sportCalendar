@@ -127,7 +127,9 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
             const dateStr = race.date.split('T')[0]; // Get "YYYY-MM-DD" part
             const [year, month, day] = dateStr.split('-').map(Number);
             const date = new Date(year, month - 1, day); // month is 0-indexed
-            return format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
+            return language === 'es' 
+              ? format(date, "EEEE, d 'de' MMMM 'de' yyyy", { locale: dateLocale })
+              : format(date, "EEEE, MMMM d, yyyy", { locale: dateLocale });
           })()}
         </p>
       </CardHeader>
