@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Race, RaceType, RacePriority, RaceGoal, DuathlonDiscipline } from '../types';
+import { Race, RaceType, RacePriority, RaceGoal, DuathlonDiscipline, DayDistance } from '../types';
 import { saveRace, generateId } from '../utils/storage';
 import { useAuth } from '../context/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
@@ -8,6 +8,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select } from './ui/select';
 import { Textarea } from './ui/textarea';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface RaceFormProps {
   race?: Race;
@@ -28,6 +29,9 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
     raceType: 'calle' as RaceType,
     distance: '',
     actualDistance: '',
+    isMultiDay: false,
+    dayDistances: [] as Array<{ day: number; distance: string; actualDistance: string }>,
+    elevation: '',
     swimmingDistance: '',
     swimmingActualDistance: '',
     cyclingDistance: '',
@@ -66,6 +70,13 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
         raceType: race.raceType,
         distance: (race.distance / 1000).toString(),
         actualDistance: race.actualDistance ? (race.actualDistance / 1000).toString() : '',
+        isMultiDay: race.isMultiDay || false,
+        dayDistances: race.dayDistances ? race.dayDistances.map(dd => ({
+          day: dd.day,
+          distance: (dd.distance / 1000).toString(),
+          actualDistance: dd.actualDistance ? (dd.actualDistance / 1000).toString() : '',
+        })) : [],
+        elevation: race.elevation ? race.elevation.toString() : '',
         swimmingDistance: race.swimmingDistance ? (race.swimmingDistance.distance / 1000).toString() : '',
         swimmingActualDistance: race.swimmingDistance?.actualDistance ? (race.swimmingDistance.actualDistance / 1000).toString() : '',
         cyclingDistance: race.cyclingDistance ? (race.cyclingDistance.distance / 1000).toString() : '',
@@ -103,10 +114,36 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
     
     if (!user) return;
 
+    // Validate multi-day race has at least one day with distance
+    if (formData.isMultiDay) {
+      const validDays = formData.dayDistances.filter(dd => dd.distance && parseFloat(dd.distance.replace(',', '.')) > 0);
+      if (validDays.length === 0) {
+        alert('Por favor, agrega al menos un día con distancia para carreras multi-día.');
+        return;
+      }
+    }
+
     setSaving(true);
 
     try {
       const isMultiDiscipline = formData.raceType === 'triatlón' || formData.raceType === 'duatlón';
+      
+      // Calculate total distance for multi-day races
+      let totalDistance = 0;
+      let dayDistancesArray: DayDistance[] | undefined = undefined;
+      
+      if (formData.isMultiDay && formData.dayDistances.length > 0) {
+        dayDistancesArray = formData.dayDistances
+          .filter(dd => dd.distance && parseFloat(dd.distance.replace(',', '.')) > 0)
+          .map((dd, index) => ({
+            day: dd.day || index + 1,
+            distance: parseFloat(dd.distance.replace(',', '.')) * 1000,
+            actualDistance: dd.actualDistance ? parseFloat(dd.actualDistance.replace(',', '.')) * 1000 : undefined,
+          }));
+        totalDistance = dayDistancesArray.reduce((sum, dd) => sum + dd.distance, 0);
+      } else if (!isMultiDiscipline && !formData.isMultiDay) {
+        totalDistance = formData.distance ? parseFloat(formData.distance.replace(',', '.')) * 1000 : 0;
+      }
       
       const raceData: Race = {
         id: race?.id || generateId(),
@@ -114,8 +151,13 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
         name: formData.name,
         date: new Date(formData.date + 'T00:00:00').toISOString(),
         raceType: formData.raceType,
-        distance: isMultiDiscipline ? 0 : (formData.distance ? parseFloat(formData.distance.replace(',', '.')) * 1000 : 0),
-        actualDistance: !isMultiDiscipline && formData.actualDistance ? parseFloat(formData.actualDistance.replace(',', '.').replace(/[^0-9.]/g, '')) * 1000 : undefined,
+        distance: totalDistance,
+        actualDistance: formData.isMultiDay 
+          ? undefined // For multi-day, actualDistance is per day
+          : (!isMultiDiscipline && formData.actualDistance ? parseFloat(formData.actualDistance.replace(',', '.').replace(/[^0-9.]/g, '')) * 1000 : undefined),
+        isMultiDay: formData.isMultiDay || undefined,
+        dayDistances: dayDistancesArray,
+        elevation: (formData.raceType === 'trail' && formData.elevation) ? parseInt(formData.elevation) : undefined,
         swimmingDistance: (formData.raceType === 'triatlón' && formData.swimmingDistance) ? {
           distance: parseFloat(formData.swimmingDistance) * 1000,
           actualDistance: formData.swimmingActualDistance ? parseFloat(formData.swimmingActualDistance) * 1000 : undefined,
@@ -229,6 +271,133 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               ))}
             </Select>
           </div>
+
+          {/* Multi-day race option */}
+          {(formData.raceType !== 'triatlón' && formData.raceType !== 'duatlón') && (
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isMultiDay"
+                  checked={formData.isMultiDay}
+                  onChange={(e) => {
+                    const isMultiDay = e.target.checked;
+                    setFormData({
+                      ...formData,
+                      isMultiDay,
+                      dayDistances: isMultiDay && formData.dayDistances.length === 0 
+                        ? [{ day: 1, distance: '', actualDistance: '' }]
+                        : formData.dayDistances,
+                    });
+                  }}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="isMultiDay" className="cursor-pointer">
+                  Carrera de múltiples días (ej: El Cruce - 3 días)
+                </Label>
+              </div>
+
+              {formData.isMultiDay && (
+                <div className="space-y-3 pl-6 border-l-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Distancias por día</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newDay = formData.dayDistances.length + 1;
+                        setFormData({
+                          ...formData,
+                          dayDistances: [...formData.dayDistances, { day: newDay, distance: '', actualDistance: '' }],
+                        });
+                      }}
+                      className="h-8"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Agregar Día
+                    </Button>
+                  </div>
+                  {formData.dayDistances.map((dayDist, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                      <div className="space-y-2">
+                        <Label>Día {dayDist.day}</Label>
+                        <div className="text-sm text-muted-foreground">Día {dayDist.day}</div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`dayDistance-${index}`}>Distancia (km) *</Label>
+                        <Input
+                          id={`dayDistance-${index}`}
+                          type="number"
+                          step="0.1"
+                          value={dayDist.distance}
+                          onChange={(e) => {
+                            const newDayDistances = [...formData.dayDistances];
+                            newDayDistances[index].distance = e.target.value;
+                            setFormData({ ...formData, dayDistances: newDayDistances });
+                          }}
+                          placeholder="10"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`dayActualDistance-${index}`}>Distancia Real (km)</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id={`dayActualDistance-${index}`}
+                            type="number"
+                            step="0.1"
+                            value={dayDist.actualDistance}
+                            onChange={(e) => {
+                              const newDayDistances = [...formData.dayDistances];
+                              newDayDistances[index].actualDistance = e.target.value;
+                              setFormData({ ...formData, dayDistances: newDayDistances });
+                            }}
+                            placeholder="10.2"
+                          />
+                          {formData.dayDistances.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const newDayDistances = formData.dayDistances.filter((_, i) => i !== index);
+                                // Renumber days
+                                newDayDistances.forEach((dd, i) => {
+                                  dd.day = i + 1;
+                                });
+                                setFormData({ ...formData, dayDistances: newDayDistances });
+                              }}
+                              className="h-10 w-10 text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Elevation for trail races */}
+          {formData.raceType === 'trail' && (
+            <div className="space-y-2 border-t pt-4">
+              <Label htmlFor="elevation">Altimetría Total (metros)</Label>
+              <Input
+                id="elevation"
+                type="number"
+                value={formData.elevation}
+                onChange={(e) => setFormData({ ...formData, elevation: e.target.value })}
+                placeholder="Ej: 1500"
+              />
+              <p className="text-sm text-muted-foreground">
+                Desnivel total acumulado de la carrera
+              </p>
+            </div>
+          )}
 
           {(formData.raceType === 'triatlón' || formData.raceType === 'duatlón') ? (
             <>
@@ -606,31 +775,33 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
             </>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="distance">Distancia (km) *</Label>
-                  <Input
-                    id="distance"
-                    type="number"
-                    step="0.1"
-                    value={formData.distance}
-                    onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
-                    placeholder="42.2"
-                    required
-                  />
+              {!formData.isMultiDay && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="distance">Distancia (km) *</Label>
+                    <Input
+                      id="distance"
+                      type="number"
+                      step="0.1"
+                      value={formData.distance}
+                      onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
+                      placeholder="42.2"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="actualDistance">Distancia Real Corrida (km)</Label>
+                    <Input
+                      id="actualDistance"
+                      type="number"
+                      step="0.1"
+                      value={formData.actualDistance}
+                      onChange={(e) => setFormData({ ...formData, actualDistance: e.target.value })}
+                      placeholder="42.5 (si te pasaste)"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="actualDistance">Distancia Real Corrida (km)</Label>
-                  <Input
-                    id="actualDistance"
-                    type="number"
-                    step="0.1"
-                    value={formData.actualDistance}
-                    onChange={(e) => setFormData({ ...formData, actualDistance: e.target.value })}
-                    placeholder="42.5 (si te pasaste)"
-                  />
-                </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">

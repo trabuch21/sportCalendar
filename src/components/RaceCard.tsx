@@ -362,15 +362,49 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
           </>
         ) : (
           <>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Distancia:</span>
-              <span className="font-medium">{formatDistance(race.distance)}</span>
-            </div>
+            {race.isMultiDay && race.dayDistances && race.dayDistances.length > 0 ? (
+              <>
+                <div className="space-y-2 pb-2 border-b">
+                  {race.dayDistances.map((dayDist, index) => (
+                    <div key={index} className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Día {dayDist.day}:</span>
+                        <span className="font-medium">{formatDistance(dayDist.distance)}</span>
+                      </div>
+                      {dayDist.actualDistance && dayDist.actualDistance !== dayDist.distance && (
+                        <div className="flex justify-between text-sm pl-4">
+                          <span className="text-muted-foreground text-xs">Distancia Real:</span>
+                          <span className="font-medium text-xs">{formatDistance(dayDist.actualDistance)}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between text-sm pt-2 font-semibold">
+                  <span>Distancia Total:</span>
+                  <span>{formatDistance(race.distance)}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Distancia:</span>
+                  <span className="font-medium">{formatDistance(race.distance)}</span>
+                </div>
 
-            {race.actualDistance && race.actualDistance !== race.distance && (
+                {race.actualDistance && race.actualDistance !== race.distance && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Distancia Real:</span>
+                    <span className="font-medium">{formatDistance(race.actualDistance)}</span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {race.elevation && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Distancia Real:</span>
-                <span className="font-medium">{formatDistance(race.actualDistance)}</span>
+                <span className="text-muted-foreground">⛰️ Altimetría:</span>
+                <span className="font-medium">{race.elevation.toLocaleString()} m</span>
               </div>
             )}
 

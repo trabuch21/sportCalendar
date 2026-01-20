@@ -13,14 +13,25 @@ export interface TransitionTime {
 
 export type DuathlonDiscipline = 'carrera' | 'ciclismo' | 'natación';
 
+export interface DayDistance {
+  day: number; // Day number (1, 2, 3, etc.)
+  distance: number; // in meters
+  actualDistance?: number; // in meters
+}
+
 export interface Race {
   id: string;
   userId: string;
   name: string;
-  date: string; // ISO date string
+  date: string; // ISO date string (date of first day for multi-day races)
   raceType: RaceType;
-  distance: number; // in meters (total distance for single discipline races)
+  distance: number; // in meters (total distance for single discipline races, or total for multi-day)
   actualDistance?: number; // in meters (if they ran more)
+  // Multi-day races
+  isMultiDay?: boolean; // Whether this is a multi-day race
+  dayDistances?: DayDistance[]; // Array of distances for each day (only for multi-day races)
+  // Elevation (for trail races)
+  elevation?: number; // in meters (for trail races, including multi-day trail races)
   // For triathlon/duathlon
   swimmingDistance?: DisciplineDistance;
   cyclingDistance?: DisciplineDistance;

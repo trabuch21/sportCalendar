@@ -11,6 +11,11 @@ function dbRaceToRace(dbRace: any): Race {
     raceType: dbRace.race_type,
     distance: dbRace.distance,
     actualDistance: dbRace.actual_distance,
+    // Multi-day races
+    isMultiDay: dbRace.is_multi_day || false,
+    dayDistances: dbRace.day_distances,
+    // Elevation
+    elevation: dbRace.elevation,
     swimmingDistance: dbRace.swimming_distance,
     cyclingDistance: dbRace.cycling_distance,
     runningDistance: dbRace.running_distance,
@@ -48,6 +53,11 @@ function raceToDbRace(race: Race): any {
     race_type: race.raceType,
     distance: race.distance,
     actual_distance: race.actualDistance,
+    // Multi-day races
+    is_multi_day: race.isMultiDay,
+    day_distances: race.dayDistances,
+    // Elevation
+    elevation: race.elevation,
     swimming_distance: race.swimmingDistance,
     cycling_distance: race.cyclingDistance,
     running_distance: race.runningDistance,
