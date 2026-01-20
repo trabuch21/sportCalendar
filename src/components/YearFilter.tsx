@@ -1,4 +1,5 @@
 import React from 'react';
+import { useI18n } from '../i18n/context';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +11,7 @@ interface YearFilterProps {
 }
 
 export function YearFilter({ selectedYear, availableYears, onYearChange, showAll = true }: YearFilterProps) {
+  const { t, language } = useI18n();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -20,7 +22,7 @@ export function YearFilter({ selectedYear, availableYears, onYearChange, showAll
           size="sm"
           onClick={() => onYearChange(null)}
         >
-          Todas
+          {t('common.all')}
         </Button>
       )}
       {availableYears
@@ -33,7 +35,7 @@ export function YearFilter({ selectedYear, availableYears, onYearChange, showAll
             onClick={() => onYearChange(year)}
           >
             {year}
-            {year === currentYear && ' (Actual)'}
+            {year === currentYear && (language === 'es' ? ' (Actual)' : ' (Current)')}
           </Button>
         ))}
     </div>

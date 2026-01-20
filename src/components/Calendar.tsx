@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Race } from '../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, getDay } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { useI18n } from '../i18n/context';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
@@ -12,7 +13,13 @@ interface CalendarProps {
 }
 
 export function Calendar({ races, onDateClick }: CalendarProps) {
+  const { t, language } = useI18n();
+  const dateLocale = language === 'es' ? es : enUS;
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  const weekDays = language === 'es' 
+    ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -48,14 +55,14 @@ export function Calendar({ races, onDateClick }: CalendarProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="capitalize">
-            {format(currentMonth, 'MMMM yyyy', { locale: es })}
+            {format(currentMonth, 'MMMM yyyy', { locale: dateLocale })}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={goToPreviousMonth}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" onClick={goToToday}>
-              Hoy
+              {language === 'es' ? 'Hoy' : 'Today'}
             </Button>
             <Button variant="outline" size="icon" onClick={goToNextMonth}>
               <ChevronRight className="h-4 w-4" />
@@ -65,7 +72,7 @@ export function Calendar({ races, onDateClick }: CalendarProps) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-7 gap-2">
-          {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
+          {weekDays.map(day => (
             <div key={day} className="text-center text-sm font-semibold text-muted-foreground p-2">
               {day}
             </div>

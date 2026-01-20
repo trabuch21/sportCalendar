@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Race, RaceType, RacePriority, RaceGoal, DuathlonDiscipline, DayDistance } from '../types';
 import { saveRace, generateId } from '../utils/storage';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../i18n/context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -16,12 +17,13 @@ interface RaceFormProps {
   onCancel: () => void;
 }
 
-const RACE_TYPES: RaceType[] = ['calle', 'trail', 'postas', 'natación', 'triatlón', 'duatlón', 'otro'];
+const RACE_TYPES: RaceType[] = ['calle', 'trail', 'natación', 'triatlón', 'duatlón', 'otro'];
 const PRIORITIES: RacePriority[] = ['máxima', 'alta', 'media', 'baja', 'ninguna'];
 const GOALS: RaceGoal[] = ['completar', 'tiempo', 'disfrutar', 'ninguno'];
 
 export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -119,7 +121,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
     if (formData.isMultiDay) {
       const validDays = formData.dayDistances.filter(dd => dd.distance && parseFloat(dd.distance.replace(',', '.')) > 0);
       if (validDays.length === 0) {
-        alert('Por favor, agrega al menos un día con distancia para carreras multi-día.');
+        alert(t('errors.multiDayValidation'));
         return;
       }
     }
@@ -231,7 +233,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
       onSave();
     } catch (error) {
       console.error('Error saving race:', error);
-      alert('Error al guardar la carrera. Por favor, intenta de nuevo.');
+      alert(t('errors.saveError'));
     } finally {
       setSaving(false);
     }
@@ -241,25 +243,25 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
     <Dialog open={true} onOpenChange={() => onCancel()}>
       <DialogContent onClose={onCancel} className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{race ? 'Editar Carrera' : 'Nueva Carrera'}</DialogTitle>
+          <DialogTitle>{race ? t('race.editRace') : t('race.newRace')}</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre de la Carrera *</Label>
+              <Label htmlFor="name">{t('race.raceName')} *</Label>
               <Input
                 id="name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ej: Maratón de Buenos Aires"
+                placeholder={t('race.raceNamePlaceholder')}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">Fecha *</Label>
+              <Label htmlFor="date">{t('common.date')} *</Label>
               <Input
                 id="date"
                 type="date"
@@ -271,23 +273,33 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="raceType">Tipo de Carrera *</Label>
+            <Label htmlFor="raceType">{t('race.raceType')} *</Label>
             <Select
               id="raceType"
               value={formData.raceType}
-              onChange={(e) => setFormData({ ...formData, raceType: e.target.value as RaceType })}
+              onChange={(e) => {
+                const newRaceType = e.target.value as RaceType;
+                // Disable multi-day if switching to natación or otro
+                const shouldDisableMultiDay = newRaceType === 'natación' || newRaceType === 'otro';
+                setFormData({ 
+                  ...formData, 
+                  raceType: newRaceType,
+                  isMultiDay: shouldDisableMultiDay ? false : formData.isMultiDay,
+                  dayDistances: shouldDisableMultiDay ? [] : formData.dayDistances,
+                });
+              }}
               required
             >
               {RACE_TYPES.map(type => (
                 <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {t(`race.types.${type}`)}
                 </option>
               ))}
             </Select>
           </div>
 
-          {/* Multi-day race option */}
-          {(formData.raceType !== 'triatlón' && formData.raceType !== 'duatlón') && (
+          {/* Multi-day race option - only for calle and trail */}
+          {(formData.raceType === 'calle' || formData.raceType === 'trail') && (
             <div className="space-y-4 border-t pt-4">
               <div className="flex items-center space-x-2">
                 <input
@@ -307,14 +319,14 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                   className="h-4 w-4"
                 />
                 <Label htmlFor="isMultiDay" className="cursor-pointer">
-                  Carrera de múltiples días (ej: El Cruce - 3 días)
+                  {t('race.multiDay')}
                 </Label>
               </div>
 
               {formData.isMultiDay && (
                 <div className="space-y-3 pl-6 border-l-2">
                   <div className="flex items-center justify-between">
-                    <Label>Distancias por día</Label>
+                    <Label>{t('race.dayDistances')}</Label>
                     <Button
                       type="button"
                       variant="outline"
@@ -329,13 +341,13 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       className="h-8"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      Agregar Día
+                      {t('race.addDay')}
                     </Button>
                   </div>
                   {formData.dayDistances.map((dayDist, index) => (
                     <div key={index} className="space-y-3 border-b pb-3 last:border-b-0">
                       <div className="flex items-center justify-between mb-2">
-                        <Label className="text-base font-semibold">Día {dayDist.day}</Label>
+                        <Label className="text-base font-semibold">{t('common.day')} {dayDist.day}</Label>
                         {formData.dayDistances.length > 1 && (
                           <Button
                             type="button"
@@ -357,7 +369,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div className="space-y-2">
-                          <Label htmlFor={`dayDistance-${index}`}>Distancia (km) *</Label>
+                          <Label htmlFor={`dayDistance-${index}`}>{t('common.distance')} (km) *</Label>
                           <Input
                             id={`dayDistance-${index}`}
                             type="number"
@@ -373,7 +385,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor={`dayActualDistance-${index}`}>Distancia Real (km)</Label>
+                          <Label htmlFor={`dayActualDistance-${index}`}>{t('common.actualDistance')} (km)</Label>
                           <Input
                             id={`dayActualDistance-${index}`}
                             type="number"
@@ -389,7 +401,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                         </div>
                         {formData.raceType === 'trail' && (
                           <div className="space-y-2 md:col-span-2">
-                            <Label htmlFor={`dayElevation-${index}`}>⛰️ Altimetría Día {dayDist.day} (metros)</Label>
+                            <Label htmlFor={`dayElevation-${index}`}>⛰️ {t('race.dayElevation')} {dayDist.day} ({t('common.elevation').toLowerCase()})</Label>
                             <Input
                               id={`dayElevation-${index}`}
                               type="number"
@@ -399,14 +411,14 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                                 newDayDistances[index].elevation = e.target.value;
                                 setFormData({ ...formData, dayDistances: newDayDistances });
                               }}
-                              placeholder="Ej: 500"
+                              placeholder={t('race.elevationPlaceholder')}
                             />
                           </div>
                         )}
                       </div>
                       {formData.raceType === 'trail' && formData.dayDistances.some(dd => dd.elevation) && (
                         <div className="text-sm text-muted-foreground pt-1">
-                          Altimetría Total: {formData.dayDistances.reduce((sum, dd) => sum + (parseInt(dd.elevation || '0') || 0), 0).toLocaleString()} m
+                          {t('race.totalElevation')}: {formData.dayDistances.reduce((sum, dd) => sum + (parseInt(dd.elevation || '0') || 0), 0).toLocaleString()} m
                         </div>
                       )}
                     </div>
@@ -419,16 +431,16 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
           {/* Elevation for trail races (only show for single-day races) */}
           {formData.raceType === 'trail' && !formData.isMultiDay && (
             <div className="space-y-2 border-t pt-4">
-              <Label htmlFor="elevation">Altimetría Total (metros)</Label>
+              <Label htmlFor="elevation">{t('race.totalElevation')} ({t('common.elevation').toLowerCase()})</Label>
               <Input
                 id="elevation"
                 type="number"
                 value={formData.elevation}
                 onChange={(e) => setFormData({ ...formData, elevation: e.target.value })}
-                placeholder="Ej: 1500"
+                placeholder={t('race.elevationPlaceholder')}
               />
               <p className="text-sm text-muted-foreground">
-                Desnivel total acumulado de la carrera
+                {t('race.elevationDescription')}
               </p>
             </div>
           )}
@@ -438,10 +450,10 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               {formData.raceType === 'triatlón' && (
                 <>
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-semibold mb-4 text-cyan-600">🏊 Natación</h3>
+                    <h3 className="text-lg font-semibold mb-4 text-cyan-600">🏊 {t('race.swimming')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="swimmingDistance">Distancia Natación (km) *</Label>
+                        <Label htmlFor="swimmingDistance">{t('race.swimming')} {t('common.distance')} (km) *</Label>
                         <Input
                           id="swimmingDistance"
                           type="number"
@@ -453,7 +465,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="swimmingActualDistance">Distancia Real (km)</Label>
+                        <Label htmlFor="swimmingActualDistance">{t('common.actualDistance')} (km)</Label>
                         <Input
                           id="swimmingActualDistance"
                           type="number"
@@ -465,7 +477,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       </div>
                     </div>
                     <div className="mt-4 space-y-2">
-                      <Label htmlFor="swimmingTime">Tiempo Natación</Label>
+                      <Label htmlFor="swimmingTime">{t('race.swimming')} {t('common.time')}</Label>
                       <Input
                         id="swimmingTime"
                         type="time"
@@ -481,32 +493,32 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               {formData.raceType === 'duatlón' && (
                 <>
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-semibold mb-4">Configuración de Disciplinas</h3>
+                    <h3 className="text-lg font-semibold mb-4">{language === 'es' ? 'Configuración de Disciplinas' : 'Discipline Configuration'}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       <div className="space-y-2">
-                        <Label htmlFor="firstDiscipline">Primera Disciplina *</Label>
+                        <Label htmlFor="firstDiscipline">{t('race.firstDiscipline')} *</Label>
                         <Select
                           id="firstDiscipline"
                           value={formData.firstDiscipline}
                           onChange={(e) => setFormData({ ...formData, firstDiscipline: e.target.value as DuathlonDiscipline })}
                           required
                         >
-                          <option value="carrera">🏃 Carrera</option>
-                          <option value="ciclismo">🚴 Ciclismo</option>
-                          <option value="natación">🏊 Natación</option>
+                          <option value="carrera">🏃 {t('race.disciplines.carrera')}</option>
+                          <option value="ciclismo">🚴 {t('race.disciplines.ciclismo')}</option>
+                          <option value="natación">🏊 {t('race.disciplines.natación')}</option>
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="secondDiscipline">Segunda Disciplina *</Label>
+                        <Label htmlFor="secondDiscipline">{t('race.secondDiscipline')} *</Label>
                         <Select
                           id="secondDiscipline"
                           value={formData.secondDiscipline}
                           onChange={(e) => setFormData({ ...formData, secondDiscipline: e.target.value as DuathlonDiscipline })}
                           required
                         >
-                          <option value="carrera">🏃 Carrera</option>
-                          <option value="ciclismo">🚴 Ciclismo</option>
-                          <option value="natación">🏊 Natación</option>
+                          <option value="carrera">🏃 {t('race.disciplines.carrera')}</option>
+                          <option value="ciclismo">🚴 {t('race.disciplines.ciclismo')}</option>
+                          <option value="natación">🏊 {t('race.disciplines.natación')}</option>
                         </Select>
                       </div>
                     </div>
@@ -518,12 +530,12 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                         {formData.firstDiscipline === 'ciclismo' && '🚴'} 
                         {formData.firstDiscipline === 'natación' && '🏊'} 
                         {' '}
-                        Primera Disciplina ({formData.firstDiscipline === 'carrera' ? 'Carrera' : formData.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'})
+                        {t('race.firstDiscipline')} ({t(`race.disciplines.${formData.firstDiscipline}`)})
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="firstDisciplineDistance">
-                            Distancia {formData.firstDiscipline === 'carrera' ? 'Carrera' : formData.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'} (km) *
+                            {t('common.distance')} {t(`race.disciplines.${formData.firstDiscipline}`)} (km) *
                           </Label>
                           <Input
                             id="firstDisciplineDistance"
@@ -536,7 +548,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="firstDisciplineActualDistance">Distancia Real (km)</Label>
+                          <Label htmlFor="firstDisciplineActualDistance">{t('common.actualDistance')} (km)</Label>
                           <Input
                             id="firstDisciplineActualDistance"
                             type="number"
@@ -549,7 +561,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       </div>
                       <div className="mt-4 space-y-2">
                         <Label htmlFor="firstDisciplineTime">
-                          Tiempo {formData.firstDiscipline === 'carrera' ? 'Carrera' : formData.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'}
+                          {t('common.time')} {t(`race.disciplines.${formData.firstDiscipline}`)}
                         </Label>
                         <Input
                           id="firstDisciplineTime"
@@ -568,13 +580,13 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               {(formData.raceType === 'triatlón' || (formData.raceType === 'duatlón' && (formData.firstDiscipline === 'ciclismo' || formData.secondDiscipline === 'ciclismo'))) && (
                 <div className="border-t pt-4">
                   <h3 className="text-lg font-semibold mb-4 text-orange-600">
-                    🚴 Ciclismo
-                    {formData.raceType === 'duatlón' && formData.firstDiscipline === 'ciclismo' && ' (Primera Disciplina)'}
-                    {formData.raceType === 'duatlón' && formData.secondDiscipline === 'ciclismo' && ' (Segunda Disciplina)'}
+                    🚴 {t('race.cycling')}
+                    {formData.raceType === 'duatlón' && formData.firstDiscipline === 'ciclismo' && ` (${t('race.firstDiscipline')})`}
+                    {formData.raceType === 'duatlón' && formData.secondDiscipline === 'ciclismo' && ` (${t('race.secondDiscipline')})`}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="cyclingDistance">Distancia Ciclismo (km) *</Label>
+                      <Label htmlFor="cyclingDistance">{t('race.cycling')} {t('common.distance')} (km) *</Label>
                       <Input
                         id="cyclingDistance"
                         type="number"
@@ -598,7 +610,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="cyclingActualDistance">Distancia Real (km)</Label>
+                      <Label htmlFor="cyclingActualDistance">{t('common.actualDistance')} (km)</Label>
                       <Input
                         id="cyclingActualDistance"
                         type="number"
@@ -622,7 +634,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">
-                    <Label htmlFor="cyclingTime">Tiempo Ciclismo</Label>
+                    <Label htmlFor="cyclingTime">{t('race.cycling')} {t('common.time')}</Label>
                     <Input
                       id="cyclingTime"
                       type="time"
@@ -653,12 +665,12 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                     {formData.secondDiscipline === 'carrera' && '🏃'} 
                     {formData.secondDiscipline === 'natación' && '🏊'} 
                     {' '}
-                    Segunda Disciplina ({formData.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación'})
+                    {t('race.secondDiscipline')} ({t(`race.disciplines.${formData.secondDiscipline}`)})
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="secondDisciplineDistance">
-                        Distancia {formData.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación'} (km) *
+                        {t('common.distance')} {t(`race.disciplines.${formData.secondDiscipline}`)} (km) *
                       </Label>
                       <Input
                         id="secondDisciplineDistance"
@@ -671,7 +683,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="secondDisciplineActualDistance">Distancia Real (km)</Label>
+                      <Label htmlFor="secondDisciplineActualDistance">{t('common.actualDistance')} (km)</Label>
                       <Input
                         id="secondDisciplineActualDistance"
                         type="number"
@@ -684,7 +696,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                   </div>
                   <div className="mt-4 space-y-2">
                     <Label htmlFor="secondDisciplineTime">
-                      Tiempo {formData.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación'}
+                      {t('common.time')} {t(`race.disciplines.${formData.secondDiscipline}`)}
                     </Label>
                     <Input
                       id="secondDisciplineTime"
@@ -700,10 +712,10 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               {/* Carrera para triatlón */}
               {formData.raceType === 'triatlón' && (
                 <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold mb-4 text-green-600">🏃 Carrera</h3>
+                  <h3 className="text-lg font-semibold mb-4 text-green-600">🏃 {t('race.running')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="runningDistance">Distancia Carrera (km) *</Label>
+                      <Label htmlFor="runningDistance">{t('race.running')} {t('common.distance')} (km) *</Label>
                       <Input
                         id="runningDistance"
                         type="number"
@@ -715,7 +727,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="runningActualDistance">Distancia Real (km)</Label>
+                      <Label htmlFor="runningActualDistance">{t('common.actualDistance')} (km)</Label>
                       <Input
                         id="runningActualDistance"
                         type="number"
@@ -727,7 +739,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                     </div>
                   </div>
                   <div className="mt-4 space-y-2">
-                    <Label htmlFor="runningTime">Tiempo Carrera</Label>
+                    <Label htmlFor="runningTime">{t('race.running')} {t('common.time')}</Label>
                     <Input
                       id="runningTime"
                       type="time"
@@ -740,16 +752,16 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               )}
 
               <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold mb-4">⏱️ Transiciones</h3>
+                <h3 className="text-lg font-semibold mb-4">⏱️ {t('race.transitions')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="transition1Time">
                       T1 - {
                         formData.raceType === 'triatlón' 
-                          ? 'Natación → Ciclismo'
+                          ? `${t('race.swimming')} → ${t('race.cycling')}`
                           : formData.raceType === 'duatlón'
-                          ? `${formData.firstDiscipline === 'carrera' ? 'Carrera' : formData.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'} → ${formData.secondDiscipline === 'ciclismo' ? 'Ciclismo' : formData.firstDiscipline === 'ciclismo' ? (formData.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación') : 'Ciclismo'}`
-                          : 'Carrera → Ciclismo'
+                          ? `${t(`race.disciplines.${formData.firstDiscipline}`)} → ${t(`race.disciplines.${formData.secondDiscipline || 'ciclismo'}`)}`
+                          : `${t('race.disciplines.carrera')} → ${t('race.disciplines.ciclismo')}`
                       }
                     </Label>
                     <Input
@@ -764,10 +776,10 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                     <Label htmlFor="transition2Time">
                       T2 - {
                         formData.raceType === 'triatlón'
-                          ? 'Ciclismo → Carrera'
+                          ? `${t('race.cycling')} → ${t('race.running')}`
                           : formData.raceType === 'duatlón'
-                          ? `${formData.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Ciclismo'} → ${formData.secondDiscipline === 'carrera' ? 'Carrera' : formData.secondDiscipline === 'natación' ? 'Natación' : 'Ciclismo'}`
-                          : 'Ciclismo → Carrera'
+                          ? `${t('race.cycling')} → ${t(`race.disciplines.${formData.secondDiscipline || 'carrera'}`)}`
+                          : `${t('race.cycling')} → ${t('race.running')}`
                       }
                     </Label>
                     <Input
@@ -782,10 +794,10 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               </div>
 
               <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold mb-4">⏱️ Tiempos Totales</h3>
+                <h3 className="text-lg font-semibold mb-4">⏱️ {t('race.totalTimes')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="targetTime">Tiempo Objetivo Total</Label>
+                    <Label htmlFor="targetTime">{language === 'es' ? 'Tiempo Objetivo Total' : 'Total Target Time'}</Label>
                     <Input
                       id="targetTime"
                       type="time"
@@ -795,7 +807,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="actualTime">Tiempo Real Total</Label>
+                    <Label htmlFor="actualTime">{language === 'es' ? 'Tiempo Real Total' : 'Total Actual Time'}</Label>
                     <Input
                       id="actualTime"
                       type="time"
@@ -812,26 +824,26 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               {!formData.isMultiDay && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="distance">Distancia (km) *</Label>
+                    <Label htmlFor="distance">{t('common.distance')} (km) *</Label>
                     <Input
                       id="distance"
                       type="number"
                       step="0.1"
                       value={formData.distance}
                       onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
-                      placeholder="42.2"
+                      placeholder={t('race.distancePlaceholder')}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="actualDistance">Distancia Real Corrida (km)</Label>
+                    <Label htmlFor="actualDistance">{t('common.actualDistance')} (km)</Label>
                     <Input
                       id="actualDistance"
                       type="number"
                       step="0.1"
                       value={formData.actualDistance}
                       onChange={(e) => setFormData({ ...formData, actualDistance: e.target.value })}
-                      placeholder="42.5 (si te pasaste)"
+                      placeholder={t('race.actualDistancePlaceholder')}
                     />
                   </div>
                 </div>
@@ -839,7 +851,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="targetTime">Tiempo Objetivo</Label>
+                  <Label htmlFor="targetTime">{t('common.targetTime')}</Label>
                   <Input
                     id="targetTime"
                     type="time"
@@ -849,7 +861,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="actualTime">Tiempo Real</Label>
+                  <Label htmlFor="actualTime">{t('common.actualTime')}</Label>
                   <Input
                     id="actualTime"
                     type="time"
@@ -864,7 +876,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="priority">Prioridad *</Label>
+              <Label htmlFor="priority">{t('common.priority')} *</Label>
               <Select
                 id="priority"
                 value={formData.priority}
@@ -873,14 +885,14 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               >
                 {PRIORITIES.map(priority => (
                   <option key={priority} value={priority}>
-                    {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                    {t(`race.priorities.${priority}`)}
                   </option>
                 ))}
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="goal">Objetivo *</Label>
+              <Label htmlFor="goal">{t('common.goal')} *</Label>
               <Select
                 id="goal"
                 value={formData.goal}
@@ -889,7 +901,7 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
               >
                 {GOALS.map(goal => (
                   <option key={goal} value={goal}>
-                    {goal === 'completar' ? 'Completar' : goal === 'tiempo' ? 'Hacer X tiempo' : goal === 'disfrutar' ? 'Disfrutar' : 'Ninguno'}
+                    {t(`race.goals.${goal}`)}
                   </option>
                 ))}
               </Select>
@@ -897,22 +909,22 @@ export function RaceForm({ race, onSave, onCancel }: RaceFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas</Label>
+            <Label htmlFor="notes">{t('common.notes')}</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Observaciones sobre la carrera..."
+              placeholder={t('race.notesPlaceholder')}
               rows={3}
             />
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Guardando...' : race ? 'Actualizar' : 'Crear'} Carrera
+              {saving ? t('common.saving') : race ? `${t('common.update')} ${t('race.newRace').toLowerCase()}` : `${t('common.create')} ${t('race.newRace').toLowerCase()}`}
             </Button>
           </div>
         </form>

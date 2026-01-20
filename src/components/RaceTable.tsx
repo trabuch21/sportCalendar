@@ -1,7 +1,8 @@
 import React from 'react';
 import { Race } from '../types';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { useI18n } from '../i18n/context';
 import { Button } from './ui/button';
 import { Pencil, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Badge } from './ui/badge';
@@ -16,6 +17,9 @@ interface RaceTableProps {
 }
 
 export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }: RaceTableProps) {
+  const { t, language } = useI18n();
+  const dateLocale = language === 'es' ? es : enUS;
+  
   const formatDistance = (race: Race): string => {
     if (race.raceType === 'triatlón' || race.raceType === 'duatlón') {
       // Calculate total distance for multi-discipline races
@@ -60,7 +64,7 @@ export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }
   if (races.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No hay carreras para mostrar
+        {language === 'es' ? 'No hay carreras para mostrar' : 'No races to display'}
       </div>
     );
   }
@@ -77,7 +81,7 @@ export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }
                 onClick={() => onSort('name')}
                 className="h-auto p-0 font-semibold hover:bg-transparent -ml-4"
               >
-                Nombre
+                {t('common.name')}
                 {getSortIcon('name')}
               </Button>
             </th>
@@ -88,12 +92,12 @@ export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }
                 onClick={() => onSort('date')}
                 className="h-auto p-0 font-semibold hover:bg-transparent -ml-4"
               >
-                Fecha
+                {t('common.date')}
                 {getSortIcon('date')}
               </Button>
             </th>
             <th className="text-left p-4 font-semibold">
-              Tipo
+              {language === 'es' ? 'Tipo' : 'Type'}
             </th>
             <th className="text-left p-4 font-semibold">
               <Button
@@ -102,14 +106,14 @@ export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }
                 onClick={() => onSort('distance')}
                 className="h-auto p-0 font-semibold hover:bg-transparent -ml-4"
               >
-                Distancia
+                {t('common.distance')}
                 {getSortIcon('distance')}
               </Button>
             </th>
-            <th className="text-left p-4 font-semibold">Tiempo Objetivo</th>
-            <th className="text-left p-4 font-semibold">Tiempo Real</th>
-            <th className="text-left p-4 font-semibold">Prioridad</th>
-            <th className="text-right p-4 font-semibold">Acciones</th>
+            <th className="text-left p-4 font-semibold">{t('common.targetTime')}</th>
+            <th className="text-left p-4 font-semibold">{t('common.actualTime')}</th>
+            <th className="text-left p-4 font-semibold">{t('common.priority')}</th>
+            <th className="text-right p-4 font-semibold">{language === 'es' ? 'Acciones' : 'Actions'}</th>
           </tr>
         </thead>
         <tbody>
@@ -125,13 +129,15 @@ export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }
                     const dateStr = race.date.split('T')[0];
                     const [year, month, day] = dateStr.split('-').map(Number);
                     const date = new Date(year, month - 1, day);
-                    return format(date, "d 'de' MMMM, yyyy", { locale: es });
+                    return language === 'es' 
+                      ? format(date, "d 'de' MMMM, yyyy", { locale: dateLocale })
+                      : format(date, "MMMM d, yyyy", { locale: dateLocale });
                   })()}
                 </div>
               </td>
               <td className="p-4">
                 <Badge variant="outline">
-                  {race.raceType.charAt(0).toUpperCase() + race.raceType.slice(1)}
+                  {t(`race.types.${race.raceType}`)}
                 </Badge>
               </td>
               <td className="p-4">
@@ -155,7 +161,7 @@ export function RaceTable({ races, onEdit, onDelete, sortBy, sortOrder, onSort }
                     race.priority === 'media' ? 'secondary' : 'outline'
                   }
                 >
-                  {race.priority.charAt(0).toUpperCase() + race.priority.slice(1)}
+                  {t(`race.priorities.${race.priority}`)}
                 </Badge>
               </td>
               <td className="p-4">

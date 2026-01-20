@@ -1,5 +1,6 @@
 import React from 'react';
 import { RaceType } from '../types';
+import { useI18n } from '../i18n/context';
 import { Button } from './ui/button';
 
 interface DisciplineFilterProps {
@@ -8,13 +9,15 @@ interface DisciplineFilterProps {
 }
 
 const DISCIPLINE_GROUPS = {
-  running: ['calle', 'trail', 'postas'] as RaceType[],
+  running: ['calle', 'trail'] as RaceType[],
   natación: ['natación'] as RaceType[],
   triatlón: ['triatlón'] as RaceType[],
   duatlón: ['duatlón'] as RaceType[],
 };
 
 export function DisciplineFilter({ selectedDiscipline, onDisciplineChange }: DisciplineFilterProps) {
+  const { t } = useI18n();
+  
   return (
     <div className="flex flex-wrap gap-2 mb-6">
       <Button
@@ -22,35 +25,35 @@ export function DisciplineFilter({ selectedDiscipline, onDisciplineChange }: Dis
         size="sm"
         onClick={() => onDisciplineChange('all')}
       >
-        Todas
+        {t('common.all')}
       </Button>
       <Button
         variant={selectedDiscipline === 'running' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onDisciplineChange('running')}
       >
-        🏃 Running
+        🏃 {t('dashboard.filters.running')}
       </Button>
       <Button
         variant={selectedDiscipline === 'natación' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onDisciplineChange('natación')}
       >
-        🏊 Natación
+        🏊 {t('dashboard.filters.natación')}
       </Button>
       <Button
         variant={selectedDiscipline === 'triatlón' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onDisciplineChange('triatlón')}
       >
-        🏊🚴🏃 Triatlón
+        🏊🚴🏃 {t('dashboard.filters.triatlón')}
       </Button>
       <Button
         variant={selectedDiscipline === 'duatlón' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onDisciplineChange('duatlón')}
       >
-        🏃🚴🏃 Duatlón
+        🏃🚴🏃 {t('dashboard.filters.duatlón')}
       </Button>
     </div>
   );

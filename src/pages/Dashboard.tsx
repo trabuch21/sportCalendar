@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Race } from '../types';
 import { getRaces, deleteRace } from '../utils/storage';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../i18n/context';
 import { RaceCard } from '../components/RaceCard';
 import { RaceTable } from '../components/RaceTable';
 import { RaceForm } from '../components/RaceForm';
@@ -9,14 +10,17 @@ import { Calendar } from '../components/Calendar';
 import { YearFilter } from '../components/YearFilter';
 import { YearStats } from '../components/YearStats';
 import { DisciplineFilter, getDisciplineTypes } from '../components/DisciplineFilter';
+import { LanguageSelector } from '../components/LanguageSelector';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { LogOut, Plus, Calendar as CalendarIcon, List, BarChart3, Download, LayoutGrid, Table } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
+  const { t, language } = useI18n();
+  const dateLocale = language === 'es' ? es : enUS;
   const [allRaces, setAllRaces] = useState<Race[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -131,13 +135,13 @@ export function Dashboard() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta carrera?')) {
+    if (window.confirm(t('errors.deleteError'))) {
       try {
         await deleteRace(id);
         await loadRaces();
       } catch (error) {
         console.error('Error deleting race:', error);
-        alert('Error al eliminar la carrera');
+        alert(t('errors.deleteError'));
       }
     }
   };
@@ -159,7 +163,7 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Cargando...</p>
+        <p className="text-muted-foreground">{t('common.loading')}</p>
       </div>
     );
   }
@@ -170,10 +174,11 @@ export function Dashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Calendario de Carreras</h1>
+              <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
               <p className="text-muted-foreground mt-1">Hola, {user.name}</p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <LanguageSelector />
               <div className="inline-flex rounded-lg border bg-muted p-1">
                 <Button
                   variant={viewMode === 'calendar' ? 'default' : 'ghost'}
@@ -182,7 +187,7 @@ export function Dashboard() {
                   className="gap-2"
                 >
                   <CalendarIcon className="h-4 w-4" />
-                  Calendario
+                  {language === 'es' ? 'Calendario' : 'Calendar'}
                 </Button>
                 <Button
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
@@ -191,7 +196,7 @@ export function Dashboard() {
                   className="gap-2"
                 >
                   <List className="h-4 w-4" />
-                  Lista
+                  {language === 'es' ? 'Lista' : 'List'}
                 </Button>
                 <Button
                   variant={viewMode === 'stats' ? 'default' : 'ghost'}
@@ -200,16 +205,16 @@ export function Dashboard() {
                   className="gap-2"
                 >
                   <BarChart3 className="h-4 w-4" />
-                  Estadísticas
+                  {language === 'es' ? 'Estadísticas' : 'Statistics'}
                 </Button>
               </div>
               <Button onClick={handleNewRace} className="gap-2">
                 <Plus className="h-4 w-4" />
-                Nueva Carrera
+                {t('dashboard.addRace')}
               </Button>
               <Button variant="outline" onClick={logout} className="gap-2">
                 <LogOut className="h-4 w-4" />
-                Cerrar Sesión
+                {t('auth.logout')}
               </Button>
             </div>
           </div>
@@ -240,7 +245,7 @@ export function Dashboard() {
                   className="gap-2"
                 >
                   <LayoutGrid className="h-4 w-4" />
-                  Cards
+                  {language === 'es' ? 'Cards' : 'Cards'}
                 </Button>
                 <Button
                   variant={listViewType === 'table' ? 'default' : 'ghost'}
@@ -249,7 +254,7 @@ export function Dashboard() {
                   className="gap-2"
                 >
                   <Table className="h-4 w-4" />
-                  Tabla
+                  {language === 'es' ? 'Tabla' : 'Table'}
                 </Button>
               </div>
             </div>
@@ -271,7 +276,9 @@ export function Dashboard() {
             {selectedDate && (
               <Card className="p-6">
                 <h3 className="text-xl font-semibold mb-4">
-                  Carreras del {format(selectedDate, "d 'de' MMMM", { locale: es })}
+                  {language === 'es' 
+                    ? `Carreras del ${format(selectedDate, "d 'de' MMMM", { locale: dateLocale })}`
+                    : `Races on ${format(selectedDate, "MMMM d", { locale: dateLocale })}`}
                 </h3>
                 {filteredRaces.filter(r => {
                   const dateStr = r.date.split('T')[0];
@@ -279,7 +286,9 @@ export function Dashboard() {
                   const raceDate = new Date(year, month - 1, day);
                   return format(raceDate, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
                 }).length === 0 ? (
-                  <p className="text-muted-foreground">No hay carreras programadas para esta fecha</p>
+                  <p className="text-muted-foreground">
+                    {language === 'es' ? 'No hay carreras programadas para esta fecha' : 'No races scheduled for this date'}
+                  </p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                     {filteredRaces
@@ -309,11 +318,13 @@ export function Dashboard() {
             {filteredRaces.length === 0 ? (
               <Card className="p-12 text-center">
                 <p className="text-muted-foreground mb-4">
-                  No tienes carreras registradas{selectedYear ? ` para ${selectedYear}` : ''}{selectedDiscipline !== 'all' && selectedDiscipline !== null ? ` de tipo ${selectedDiscipline}` : ''}.
+                  {language === 'es' 
+                    ? `No tienes carreras registradas${selectedYear ? ` para ${selectedYear}` : ''}${selectedDiscipline !== 'all' && selectedDiscipline !== null ? ` de tipo ${selectedDiscipline}` : ''}.`
+                    : `You have no registered races${selectedYear ? ` for ${selectedYear}` : ''}${selectedDiscipline !== 'all' && selectedDiscipline !== null ? ` of type ${selectedDiscipline}` : ''}.`}
                 </p>
                 <Button onClick={handleNewRace}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Crear tu primera carrera
+                  {language === 'es' ? 'Crear tu primera carrera' : 'Create your first race'}
                 </Button>
               </Card>
             ) : listViewType === 'card' ? (
@@ -348,7 +359,7 @@ export function Dashboard() {
               <YearStats races={allRaces} year={selectedYear} />
             ) : (
               <Card className="p-12 text-center">
-                <p className="text-muted-foreground">Selecciona un año para ver las estadísticas</p>
+                <p className="text-muted-foreground">{language === 'es' ? 'Selecciona un año para ver las estadísticas' : 'Select a year to view statistics'}</p>
               </Card>
             )}
           </div>

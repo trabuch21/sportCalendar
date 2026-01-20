@@ -1,0 +1,111 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "all": "Todas",
+    "name": "Nombre",
+    "date": "Fecha",
+    "notes": "Notas",
+    "distance": "Distancia",
+    "actualDistance": "Distancia Real",
+    "elevation": "Altimetría",
+    "totalElevation": "Altimetría Total",
+    "time": "Tiempo",
+    "targetTime": "Tiempo Objetivo",
+    "actualTime": "Tiempo Real",
+    "total": "Total",
+    "day": "Día",
+    "priority": "Prioridad",
+    "goal": "Objetivo"
+  },
+  "race": {
+    "newRace": "Nueva Carrera",
+    "editRace": "Editar Carrera",
+    "raceName": "Nombre de la Carrera",
+    "raceNamePlaceholder": "Ej: Maratón de Buenos Aires",
+    "raceType": "Tipo de Carrera",
+    "multiDay": "Carrera de múltiples días (ej: El Cruce - 3 días)",
+    "addDay": "Agregar Día",
+    "dayDistances": "Distancias por día",
+    "dayElevation": "Altimetría Día",
+    "elevationPlaceholder": "Ej: 1500",
+    "elevationDescription": "Desnivel total acumulado de la carrera",
+    "distancePlaceholder": "42.2",
+    "actualDistancePlaceholder": "42.5 (si te pasaste)",
+    "notesPlaceholder": "Observaciones sobre la carrera...",
+    "swimming": "Natación",
+    "cycling": "Ciclismo",
+    "running": "Carrera",
+    "firstDiscipline": "Primera Disciplina",
+    "secondDiscipline": "Segunda Disciplina",
+    "transitions": "Transiciones",
+    "totalTimes": "Tiempos Totales",
+    "types": {
+      "calle": "Calle",
+      "trail": "Trail",
+      "natación": "Natación",
+      "triatlón": "Triatlón",
+      "duatlón": "Duatlón",
+      "otro": "Otro"
+    },
+    "priorities": {
+      "máxima": "Máxima",
+      "alta": "Alta",
+      "media": "Media",
+      "baja": "Baja",
+      "ninguna": "Ninguna"
+    },
+    "goals": {
+      "completar": "Completar",
+      "tiempo": "Hacer X tiempo",
+      "disfrutar": "Disfrutar",
+      "ninguno": "Ninguno"
+    },
+    "disciplines": {
+      "carrera": "Carrera",
+      "ciclismo": "Ciclismo",
+      "natación": "Natación"
+    }
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "email": "Email",
+    "password": "Contraseña",
+    "name": "Nombre",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "resetPassword": "Restablecer Contraseña",
+    "nameRequired": "El nombre es requerido",
+    "createAccount": "Crea tu cuenta para comenzar",
+    "enterAccount": "Ingresa a tu cuenta para continuar"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "myRaces": "Mis Carreras",
+    "addRace": "Agregar Carrera",
+    "noRaces": "No hay carreras registradas",
+    "noRacesDescription": "Comienza agregando tu primera carrera",
+    "export": "Exportar",
+    "filters": {
+      "running": "Running",
+      "natación": "Natación",
+      "triatlón": "Triatlón",
+      "duatlón": "Duatlón"
+    }
+  },
+  "errors": {
+    "saveError": "Error al guardar la carrera. Por favor, intenta de nuevo.",
+    "deleteError": "Error al eliminar la carrera.",
+    "loadError": "Error al cargar las carreras.",
+    "multiDayValidation": "Por favor, agrega al menos un día con distancia para carreras multi-día."
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "all": "All",
+    "name": "Name",
+    "date": "Date",
+    "notes": "Notes",
+    "distance": "Distance",
+    "actualDistance": "Actual Distance",
+    "elevation": "Elevation",
+    "totalElevation": "Total Elevation",
+    "time": "Time",
+    "targetTime": "Target Time",
+    "actualTime": "Actual Time",
+    "total": "Total",
+    "day": "Day",
+    "priority": "Priority",
+    "goal": "Goal"
+  },
+  "race": {
+    "newRace": "New Race",
+    "editRace": "Edit Race",
+    "raceName": "Race Name",
+    "raceNamePlaceholder": "E.g: Buenos Aires Marathon",
+    "raceType": "Race Type",
+    "multiDay": "Multi-day race (e.g: El Cruce - 3 days)",
+    "addDay": "Add Day",
+    "dayDistances": "Distances per day",
+    "dayElevation": "Elevation Day",
+    "elevationPlaceholder": "E.g: 1500",
+    "elevationDescription": "Total accumulated elevation gain",
+    "distancePlaceholder": "42.2",
+    "actualDistancePlaceholder": "42.5 (if you went over)",
+    "notesPlaceholder": "Observations about the race...",
+    "swimming": "Swimming",
+    "cycling": "Cycling",
+    "running": "Running",
+    "firstDiscipline": "First Discipline",
+    "secondDiscipline": "Second Discipline",
+    "transitions": "Transitions",
+    "totalTimes": "Total Times",
+    "types": {
+      "calle": "Road",
+      "trail": "Trail",
+      "natación": "Swimming",
+      "triatlón": "Triathlon",
+      "duatlón": "Duathlon",
+      "otro": "Other"
+    },
+    "priorities": {
+      "máxima": "Maximum",
+      "alta": "High",
+      "media": "Medium",
+      "baja": "Low",
+      "ninguna": "None"
+    },
+    "goals": {
+      "completar": "Complete",
+      "tiempo": "Target Time",
+      "disfrutar": "Enjoy",
+      "ninguno": "None"
+    },
+    "disciplines": {
+      "carrera": "Running",
+      "ciclismo": "Cycling",
+      "natación": "Swimming"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "forgotPassword": "Forgot your password?",
+    "resetPassword": "Reset Password",
+    "nameRequired": "Name is required",
+    "createAccount": "Create your account to get started",
+    "enterAccount": "Enter your account to continue"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "myRaces": "My Races",
+    "addRace": "Add Race",
+    "noRaces": "No races registered",
+    "noRacesDescription": "Start by adding your first race",
+    "export": "Export",
+    "filters": {
+      "running": "Running",
+      "natación": "Swimming",
+      "triatlón": "Triathlon",
+      "duatlón": "Duathlon"
+    }
+  },
+  "errors": {
+    "saveError": "Error saving race. Please try again.",
+    "deleteError": "Error deleting race.",
+    "loadError": "Error loading races.",
+    "multiDayValidation": "Please add at least one day with distance for multi-day races."
+  }
+}

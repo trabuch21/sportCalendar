@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../i18n/context';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 export function Login() {
   const navigate = useNavigate();
   const { isAuthenticated, login, register } = useAuth();
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,19 +30,19 @@ export function Login() {
 
     if (isRegister) {
       if (!name.trim()) {
-        setError('El nombre es requerido');
+        setError(t('auth.nameRequired'));
         return;
       }
       const result = await register(email, password, name);
       if (!result.success) {
-        setError(result.error || 'Error al registrar');
+        setError(result.error || t('errors.saveError'));
       } else {
         navigate('/');
       }
     } else {
       const result = await login(email, password);
       if (!result.success) {
-        setError(result.error || 'Error al iniciar sesión');
+        setError(result.error || t('errors.saveError'));
       } else {
         navigate('/');
       }
@@ -52,12 +54,10 @@ export function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold text-center">
-            {isRegister ? 'Registrarse' : 'Iniciar Sesión'}
+            {isRegister ? t('auth.signup') : t('auth.login')}
           </CardTitle>
           <CardDescription className="text-center">
-            {isRegister 
-              ? 'Crea tu cuenta para comenzar' 
-              : 'Ingresa a tu cuenta para continuar'}
+            {isRegister ? t('auth.createAccount') : t('auth.enterAccount')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,20 +65,20 @@ export function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre</Label>
+                <Label htmlFor="name">{t('auth.name')}</Label>
                 <Input
                   id="name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Tu nombre"
+                  placeholder={t('auth.name')}
                   required
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -90,7 +90,7 @@ export function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -108,7 +108,7 @@ export function Login() {
             )}
 
             <Button type="submit" className="w-full" size="lg">
-              {isRegister ? 'Registrarse' : 'Iniciar Sesión'}
+              {isRegister ? t('auth.signup') : t('auth.login')}
             </Button>
           </form>
 
@@ -123,8 +123,8 @@ export function Login() {
               className="text-sm"
             >
               {isRegister
-                ? '¿Ya tienes cuenta? Inicia sesión'
-                : '¿No tienes cuenta? Regístrate'}
+                ? `${t('auth.hasAccount')} ${t('auth.login')}`
+                : `${t('auth.noAccount')} ${t('auth.signup')}`}
             </Button>
           </div>
         </CardContent>

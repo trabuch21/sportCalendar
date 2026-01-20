@@ -1,7 +1,8 @@
 import React from 'react';
 import { Race } from '../types';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS } from 'date-fns/locale';
+import { useI18n } from '../i18n/context';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -14,6 +15,9 @@ interface RaceCardProps {
 }
 
 export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
+  const { t, language } = useI18n();
+  const dateLocale = language === 'es' ? es : enUS;
+  
   const formatDistance = (meters: number) => {
     if (meters >= 1000) {
       return `${(meters / 1000).toFixed(1)} km`;
@@ -40,7 +44,6 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
     const colors: Record<string, string> = {
       calle: 'bg-blue-500',
       trail: 'bg-green-500',
-      postas: 'bg-orange-500',
       natación: 'bg-cyan-500',
       triatlón: 'bg-amber-500',
       duatlón: 'bg-pink-500',
@@ -74,7 +77,6 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
     const colors: Record<string, string> = {
       calle: 'border-l-blue-500',
       trail: 'border-l-green-500',
-      postas: 'border-l-orange-500',
       natación: 'border-l-cyan-500',
       triatlón: 'border-l-amber-500',
       duatlón: 'border-l-pink-500',
@@ -89,13 +91,13 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
         <div className="flex items-start justify-between">
           <div className="flex flex-wrap gap-2">
             <Badge className={getRaceTypeColor(race.raceType)}>
-              {race.raceType.charAt(0).toUpperCase() + race.raceType.slice(1)}
+              {t(`race.types.${race.raceType}`)}
             </Badge>
             <Badge variant="outline" className={getPriorityColor(race.priority)}>
-              {race.priority.charAt(0).toUpperCase() + race.priority.slice(1)}
+              {t(`race.priorities.${race.priority}`)}
             </Badge>
             <Badge variant="secondary">
-              🎯 {getGoalLabel(race.goal)}
+              🎯 {t(`race.goals.${race.goal}`)}
             </Badge>
           </div>
           <div className="flex gap-1">
@@ -135,27 +137,27 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
             {race.raceType === 'triatlón' && race.swimmingDistance && (
               <>
                 <div className="space-y-1 pb-2 border-b">
-                  <p className="text-sm font-semibold text-cyan-600">🏊 Natación</p>
+                  <p className="text-sm font-semibold text-cyan-600">🏊 {t('race.swimming')}</p>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia:</span>
+                    <span className="text-muted-foreground">{t('common.distance')}:</span>
                     <span className="font-medium">{formatDistance(race.swimmingDistance.distance)}</span>
                   </div>
                   {race.swimmingDistance.actualDistance && race.swimmingDistance.actualDistance !== race.swimmingDistance.distance && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Distancia Real:</span>
+                      <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                       <span className="font-medium">{formatDistance(race.swimmingDistance.actualDistance)}</span>
                     </div>
                   )}
                   {race.swimmingTime && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tiempo:</span>
+                      <span className="text-muted-foreground">{t('common.time')}:</span>
                       <span className="font-medium">{formatTime(race.swimmingTime)}</span>
                     </div>
                   )}
                 </div>
                 {race.transition1Time && (
                   <div className="flex justify-between text-sm py-1">
-                    <span className="text-muted-foreground">T1 (Natación → Ciclismo):</span>
+                    <span className="text-muted-foreground">T1 ({t('race.swimming')} → {t('race.cycling')}):</span>
                     <span className="font-medium">{formatTime(race.transition1Time.time)}</span>
                   </div>
                 )}
@@ -170,21 +172,21 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                     {race.firstDiscipline === 'ciclismo' && '🚴'} 
                     {race.firstDiscipline === 'natación' && '🏊'} 
                     {' '}
-                    Primera Disciplina ({race.firstDiscipline === 'carrera' ? 'Carrera' : race.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'})
+                    {t('race.firstDiscipline')} ({t(`race.disciplines.${race.firstDiscipline}`)})
                   </p>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia:</span>
+                    <span className="text-muted-foreground">{t('common.distance')}:</span>
                     <span className="font-medium">{formatDistance(race.firstDisciplineData.distance)}</span>
                   </div>
                   {race.firstDisciplineData.actualDistance && race.firstDisciplineData.actualDistance !== race.firstDisciplineData.distance && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Distancia Real:</span>
+                      <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                       <span className="font-medium">{formatDistance(race.firstDisciplineData.actualDistance)}</span>
                     </div>
                   )}
                   {race.firstDisciplineTime && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tiempo:</span>
+                      <span className="text-muted-foreground">{t('common.time')}:</span>
                       <span className="font-medium">{formatTime(race.firstDisciplineTime)}</span>
                     </div>
                   )}
@@ -192,7 +194,7 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                 {race.transition1Time && (
                   <div className="flex justify-between text-sm py-1">
                     <span className="text-muted-foreground">
-                      T1 ({race.firstDiscipline === 'carrera' ? 'Carrera' : race.firstDiscipline === 'ciclismo' ? 'Ciclismo' : 'Natación'} → {race.secondDiscipline === 'ciclismo' ? 'Ciclismo' : race.firstDiscipline === 'ciclismo' ? (race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación') : 'Ciclismo'}):
+                      T1 ({t(`race.disciplines.${race.firstDiscipline}`)} → {t(`race.disciplines.${race.secondDiscipline || 'ciclismo'}`)}):
                     </span>
                     <span className="font-medium">{formatTime(race.transition1Time.time)}</span>
                   </div>
@@ -204,27 +206,27 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
             {race.raceType === 'duatlón' && !race.firstDisciplineData && race.firstRunDistance && (
               <>
                 <div className="space-y-1 pb-2 border-b">
-                  <p className="text-sm font-semibold text-blue-600">🏃 Primera Carrera</p>
+                  <p className="text-sm font-semibold text-blue-600">🏃 {language === 'es' ? 'Primera Carrera' : 'First Run'}</p>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia:</span>
+                    <span className="text-muted-foreground">{t('common.distance')}:</span>
                     <span className="font-medium">{formatDistance(race.firstRunDistance.distance)}</span>
                   </div>
                   {race.firstRunDistance.actualDistance && race.firstRunDistance.actualDistance !== race.firstRunDistance.distance && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Distancia Real:</span>
+                      <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                       <span className="font-medium">{formatDistance(race.firstRunDistance.actualDistance)}</span>
                     </div>
                   )}
                   {race.firstRunTime && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tiempo:</span>
+                      <span className="text-muted-foreground">{t('common.time')}:</span>
                       <span className="font-medium">{formatTime(race.firstRunTime)}</span>
                     </div>
                   )}
                 </div>
                 {race.transition1Time && (
                   <div className="flex justify-between text-sm py-1">
-                    <span className="text-muted-foreground">T1 (Carrera → Ciclismo):</span>
+                    <span className="text-muted-foreground">T1 ({t('race.disciplines.carrera')} → {t('race.disciplines.ciclismo')}):</span>
                     <span className="font-medium">{formatTime(race.transition1Time.time)}</span>
                   </div>
                 )}
@@ -236,23 +238,23 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
               <>
                 <div className="space-y-1 pb-2 border-b">
                   <p className="text-sm font-semibold text-orange-600">
-                    🚴 Ciclismo
-                    {race.raceType === 'duatlón' && race.firstDiscipline === 'ciclismo' && ' (Primera Disciplina)'}
-                    {race.raceType === 'duatlón' && race.secondDiscipline === 'ciclismo' && ' (Segunda Disciplina)'}
+                    🚴 {t('race.cycling')}
+                    {race.raceType === 'duatlón' && race.firstDiscipline === 'ciclismo' && ` (${t('race.firstDiscipline')})`}
+                    {race.raceType === 'duatlón' && race.secondDiscipline === 'ciclismo' && ` (${t('race.secondDiscipline')})`}
                   </p>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia:</span>
+                    <span className="text-muted-foreground">{t('common.distance')}:</span>
                     <span className="font-medium">{formatDistance(race.cyclingDistance.distance)}</span>
                   </div>
                   {race.cyclingDistance.actualDistance && race.cyclingDistance.actualDistance !== race.cyclingDistance.distance && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Distancia Real:</span>
+                      <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                       <span className="font-medium">{formatDistance(race.cyclingDistance.actualDistance)}</span>
                     </div>
                   )}
                   {race.cyclingTime && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tiempo:</span>
+                      <span className="text-muted-foreground">{t('common.time')}:</span>
                       <span className="font-medium">{formatTime(race.cyclingTime)}</span>
                     </div>
                   )}
@@ -260,7 +262,9 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                 {race.transition2Time && (
                   <div className="flex justify-between text-sm py-1">
                     <span className="text-muted-foreground">
-                      T2 ({race.raceType === 'triatlón' ? 'Ciclismo → Carrera' : race.firstDiscipline === 'ciclismo' ? 'Ciclismo → ' + (race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación') : 'Ciclismo → ' + (race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación')}):
+                      T2 ({race.raceType === 'triatlón' 
+                        ? `${t('race.cycling')} → ${t('race.running')}` 
+                        : `${t('race.cycling')} → ${t(`race.disciplines.${race.secondDiscipline || 'carrera'}`)}`}):
                     </span>
                     <span className="font-medium">{formatTime(race.transition2Time.time)}</span>
                   </div>
@@ -276,21 +280,21 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                     {race.secondDiscipline === 'carrera' && '🏃'} 
                     {race.secondDiscipline === 'natación' && '🏊'} 
                     {' '}
-                    Segunda Disciplina ({race.secondDiscipline === 'carrera' ? 'Carrera' : 'Natación'})
+                    {t('race.secondDiscipline')} ({t(`race.disciplines.${race.secondDiscipline}`)})
                   </p>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia:</span>
+                    <span className="text-muted-foreground">{t('common.distance')}:</span>
                     <span className="font-medium">{formatDistance(race.secondDisciplineData.distance)}</span>
                   </div>
                   {race.secondDisciplineData.actualDistance && race.secondDisciplineData.actualDistance !== race.secondDisciplineData.distance && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Distancia Real:</span>
+                      <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                       <span className="font-medium">{formatDistance(race.secondDisciplineData.actualDistance)}</span>
                     </div>
                   )}
                   {race.secondDisciplineTime && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Tiempo:</span>
+                      <span className="text-muted-foreground">{t('common.time')}:</span>
                       <span className="font-medium">{formatTime(race.secondDisciplineTime)}</span>
                     </div>
                   )}
@@ -301,20 +305,20 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
             {/* Carrera solo para triatlón */}
             {race.runningDistance && race.raceType === 'triatlón' && (
               <div className="space-y-1 pb-2 border-b">
-                <p className="text-sm font-semibold text-green-600">🏃 Carrera</p>
+                <p className="text-sm font-semibold text-green-600">🏃 {t('race.running')}</p>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Distancia:</span>
+                  <span className="text-muted-foreground">{t('common.distance')}:</span>
                   <span className="font-medium">{formatDistance(race.runningDistance.distance)}</span>
                 </div>
                 {race.runningDistance.actualDistance && race.runningDistance.actualDistance !== race.runningDistance.distance && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia Real:</span>
+                    <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                     <span className="font-medium">{formatDistance(race.runningDistance.actualDistance)}</span>
                   </div>
                 )}
                 {race.runningTime && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tiempo:</span>
+                    <span className="text-muted-foreground">{t('common.time')}:</span>
                     <span className="font-medium">{formatTime(race.runningTime)}</span>
                   </div>
                 )}
@@ -324,20 +328,20 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
             {/* Legacy support: Segunda Carrera para duatlón antiguo */}
             {race.runningDistance && race.raceType === 'duatlón' && !race.secondDisciplineData && (
               <div className="space-y-1 pb-2 border-b">
-                <p className="text-sm font-semibold text-green-600">🏃 Segunda Carrera</p>
+                <p className="text-sm font-semibold text-green-600">🏃 {language === 'es' ? 'Segunda Carrera' : 'Second Run'}</p>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Distancia:</span>
+                  <span className="text-muted-foreground">{t('common.distance')}:</span>
                   <span className="font-medium">{formatDistance(race.runningDistance.distance)}</span>
                 </div>
                 {race.runningDistance.actualDistance && race.runningDistance.actualDistance !== race.runningDistance.distance && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia Real:</span>
+                    <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                     <span className="font-medium">{formatDistance(race.runningDistance.actualDistance)}</span>
                   </div>
                 )}
                 {race.runningTime && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tiempo:</span>
+                    <span className="text-muted-foreground">{t('common.time')}:</span>
                     <span className="font-medium">{formatTime(race.runningTime)}</span>
                   </div>
                 )}
@@ -346,14 +350,14 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
 
             {race.targetTime && (
               <div className="flex justify-between text-sm pt-2 border-t-2 border-primary">
-                <span className="font-semibold">Tiempo Objetivo Total:</span>
+                <span className="font-semibold">{language === 'es' ? 'Tiempo Objetivo Total' : 'Total Target Time'}:</span>
                 <span className="font-bold">{formatTime(race.targetTime)}</span>
               </div>
             )}
 
             {race.actualTime && (
               <div className="flex justify-between text-sm pt-1">
-                <span className="font-semibold text-green-600">Tiempo Real Total:</span>
+                <span className="font-semibold text-green-600">{language === 'es' ? 'Tiempo Real Total' : 'Total Actual Time'}:</span>
                 <span className="font-bold text-green-600">{formatTime(race.actualTime)}</span>
               </div>
             )}
@@ -366,18 +370,18 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                   {race.dayDistances.map((dayDist, index) => (
                     <div key={index} className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground font-medium">Día {dayDist.day}:</span>
+                        <span className="text-muted-foreground font-medium">{t('common.day')} {dayDist.day}:</span>
                         <span className="font-medium">{formatDistance(dayDist.distance)}</span>
                       </div>
                       {dayDist.actualDistance && dayDist.actualDistance !== dayDist.distance && (
                         <div className="flex justify-between text-sm pl-4">
-                          <span className="text-muted-foreground text-xs">Distancia Real:</span>
+                          <span className="text-muted-foreground text-xs">{t('common.actualDistance')}:</span>
                           <span className="font-medium text-xs">{formatDistance(dayDist.actualDistance)}</span>
                         </div>
                       )}
                       {dayDist.elevation && (
                         <div className="flex justify-between text-sm pl-4">
-                          <span className="text-muted-foreground text-xs">⛰️ Altimetría:</span>
+                          <span className="text-muted-foreground text-xs">⛰️ {t('common.elevation')}:</span>
                           <span className="font-medium text-xs">{dayDist.elevation.toLocaleString()} m</span>
                         </div>
                       )}
@@ -386,12 +390,12 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
                 </div>
                 <div className="space-y-1 pt-2 border-t">
                   <div className="flex justify-between text-sm font-semibold">
-                    <span>Distancia Total:</span>
+                    <span>{t('common.distance')} {t('common.total')}:</span>
                     <span>{formatDistance(race.distance)}</span>
                   </div>
                   {race.elevation && (
                     <div className="flex justify-between text-sm font-semibold">
-                      <span>⛰️ Altimetría Total:</span>
+                      <span>⛰️ {t('race.totalElevation')}:</span>
                       <span>{race.elevation.toLocaleString()} m</span>
                     </div>
                   )}
@@ -400,13 +404,13 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
             ) : (
               <>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Distancia:</span>
+                  <span className="text-muted-foreground">{t('common.distance')}:</span>
                   <span className="font-medium">{formatDistance(race.distance)}</span>
                 </div>
 
                 {race.actualDistance && race.actualDistance !== race.distance && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Distancia Real:</span>
+                    <span className="text-muted-foreground">{t('common.actualDistance')}:</span>
                     <span className="font-medium">{formatDistance(race.actualDistance)}</span>
                   </div>
                 )}
@@ -415,21 +419,21 @@ export function RaceCard({ race, onEdit, onDelete }: RaceCardProps) {
 
             {race.elevation && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">⛰️ Altimetría:</span>
+                <span className="text-muted-foreground">⛰️ {t('common.elevation')}:</span>
                 <span className="font-medium">{race.elevation.toLocaleString()} m</span>
               </div>
             )}
 
             {race.targetTime && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tiempo Objetivo:</span>
+                <span className="text-muted-foreground">{t('common.targetTime')}:</span>
                 <span className="font-medium">{formatTime(race.targetTime)}</span>
               </div>
             )}
 
             {race.actualTime && (
               <div className="flex justify-between text-sm pt-2 border-t">
-                <span className="font-semibold text-green-600">Tiempo Real:</span>
+                <span className="font-semibold text-green-600">{t('common.actualTime')}:</span>
                 <span className="font-bold text-green-600">{formatTime(race.actualTime)}</span>
               </div>
             )}
