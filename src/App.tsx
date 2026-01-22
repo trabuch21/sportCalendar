@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { I18nProvider, useI18n } from './i18n/context';
+import { ThemeProvider } from './context/ThemeContext';
 import { Login } from './components/Login';
 import { Dashboard } from './pages/Dashboard';
 import './App.css';
@@ -54,11 +55,13 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <I18nProvider>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </I18nProvider>
+      <ThemeProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </I18nProvider>
+      </ThemeProvider>
     </Router>
   );
 }

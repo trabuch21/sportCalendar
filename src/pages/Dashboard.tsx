@@ -11,6 +11,7 @@ import { YearFilter } from '../components/YearFilter';
 import { YearStats } from '../components/YearStats';
 import { DisciplineFilter, getDisciplineTypes } from '../components/DisciplineFilter';
 import { LanguageSelector } from '../components/LanguageSelector';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { LogOut, Plus, Calendar as CalendarIcon, List, BarChart3, Download, LayoutGrid, Table } from 'lucide-react';
@@ -179,6 +180,7 @@ export function Dashboard() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <LanguageSelector />
+              <ThemeToggle />
               <div className="inline-flex rounded-lg border bg-muted p-1">
                 <Button
                   variant={viewMode === 'calendar' ? 'default' : 'ghost'}
